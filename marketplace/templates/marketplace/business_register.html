@@ -1,0 +1,65 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Register Business - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-8">Register Your Business</h1>
+    
+    <div class="card">
+        <p class="mb-6 text-gray-600">Register your business to start selling products and services on Madidi Market. Once registered, your application will be reviewed by our team.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="{{ form.name.id_for_label }}" class="block text-gray-700 mb-2">Business Name *</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.name.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.description.id_for_label }}" class="block text-gray-700 mb-2">Business Description *</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.description.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.address.id_for_label }}" class="block text-gray-700 mb-2">Business Address *</label>
+                {{ form.address }}
+                {% if form.address.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.address.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="{{ form.phone_number.id_for_label }}" class="block text-gray-700 mb-2">Phone Number *</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.phone_number.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-gray-700 mb-2">Email *</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary w-full py-3">Register Business</button>
+        </form>
+    </div>
+    
+    <div class="mt-8 text-center">
+        <a href="{% url 'marketplace:home' %}" class="text-blue-600 hover:underline">&larr; Back to Home</a>
+    </div>
+</div>
+{% endblock %}

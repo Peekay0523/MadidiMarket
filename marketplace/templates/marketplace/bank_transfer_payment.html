@@ -1,0 +1,78 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Bank Transfer Payment - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Bank Transfer Payment</h1>
+
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-4">Bank Transfer Instructions</h2>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h3 class="font-medium text-blue-800 mb-2">Transfer Details:</h3>
+                <ul class="list-disc pl-5 space-y-1 text-sm">
+                    <li><strong>Account Name:</strong> Madidi Market Services Ltd</li>
+                    <li><strong>Account Number:</strong> 1234567890</li>
+                    <li><strong>Bank:</strong> Standard Bank</li>
+                    <li><strong>Branch Code:</strong> 000005</li>
+                    <li><strong>Reference:</strong> {{ reference_code }}</li>
+                </ul>
+            </div>
+            
+            <p class="text-gray-600 mb-4">After completing your bank transfer, please upload proof of payment below to confirm your order.</p>
+        </div>
+        
+        <form method="post" action="{% url 'marketplace:process_bank_transfer' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">Upload Proof of Payment</h2>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="mt-4">
+                        <label for="proof_of_payment" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
+                            <span>Upload a file</span>
+                            <input id="proof_of_payment" name="proof_of_payment" type="file" accept=".pdf,.jpg,.jpeg,.png" required
+                                   class="sr-only">
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1">PDF, JPG, PNG up to 5MB</p>
+                        <p id="file-name" class="text-sm text-gray-600 mt-2"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+                <div class="border rounded-lg p-4 bg-gray-50">
+                    <div class="flex justify-between mb-2">
+                        <span>Amount:</span>
+                        <span class="font-medium">R{{ amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg pt-2 border-t">
+                        <span>Total:</span>
+                        <span>R{{ amount|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <a href="{% url 'marketplace:checkout' %}" class="text-blue-600 hover:text-blue-800">← Back to Checkout</a>
+                <button type="submit" class="btn-primary px-6 py-3">Submit Proof of Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('proof_of_payment').addEventListener('change', function(e) {
+    const fileName = e.target.files[0] ? e.target.files[0].name : '';
+    document.getElementById('file-name').textContent = fileName || '';
+});
+</script>
+{% endblock %}

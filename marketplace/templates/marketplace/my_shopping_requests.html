@@ -1,0 +1,96 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}My Shopping Requests - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">My Shopping Requests</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Requests Made by Me -->
+        <div>
+            <h2 class="text-2xl font-semibold mb-6">Requests I've Made</h2>
+            
+            {% if sent_requests %}
+                <div class="space-y-4">
+                    {% for request in sent_requests %}
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 {% if request.status == 'pending' %}border-yellow-500{% elif request.status == 'accepted' %}border-green-500{% elif request.status == 'rejected' %}border-red-500{% else %}border-blue-500{% endif %}">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-semibold">To: {{ request.shopper.username }}</h3>
+                            <span class="px-2 py-1 rounded text-xs 
+                                {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif request.status == 'accepted' %}bg-green-100 text-green-800
+                                {% elif request.status == 'rejected' %}bg-red-100 text-red-800
+                                {% elif request.status == 'completed' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ request.status|title }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-gray-700 mb-2"><strong>Trip:</strong> {{ request.shopping_trip.planned_departure_time|date:"M d, Y H:i" }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Items:</strong> {{ request.items_requested|truncatechars:100 }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Estimated Cost:</strong> R{{ request.estimated_total_cost|default:"0.00" }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Amount to Pay:</strong> R{{ request.amount_to_pay_shopper|default:"0.00" }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Delivery:</strong> {{ request.delivery_location }}</p>
+                        <p class="text-gray-700"><strong>Contact:</strong> {{ request.contact_details }}</p>
+
+                        {% if request.notes %}
+                            <p class="text-gray-600 mt-2 text-sm"><strong>Notes:</strong> {{ request.notes }}</p>
+                        {% endif %}
+
+                        <p class="text-gray-500 text-sm mt-3">Requested on: {{ request.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white rounded-lg shadow p-8 text-center">
+                    <p class="text-gray-600">You haven't made any shopping requests yet.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Requests Received by Me -->
+        <div>
+            <h2 class="text-2xl font-semibold mb-6">Requests I've Received</h2>
+            
+            {% if received_requests %}
+                <div class="space-y-4">
+                    {% for request in received_requests %}
+                    <div class="bg-white rounded-lg shadow p-6 border-l-4 {% if request.status == 'pending' %}border-yellow-500{% elif request.status == 'accepted' %}border-green-500{% elif request.status == 'rejected' %}border-red-500{% else %}border-blue-500{% endif %}">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-semibold">From: {{ request.requester.username }}</h3>
+                            <span class="px-2 py-1 rounded text-xs 
+                                {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif request.status == 'accepted' %}bg-green-100 text-green-800
+                                {% elif request.status == 'rejected' %}bg-red-100 text-red-800
+                                {% elif request.status == 'completed' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ request.status|title }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-gray-700 mb-2"><strong>Trip:</strong> {{ request.shopping_trip.planned_departure_time|date:"M d, Y H:i" }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Items:</strong> {{ request.items_requested|truncatechars:100 }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Estimated Cost:</strong> R{{ request.estimated_total_cost|default:"0.00" }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Amount to Pay:</strong> R{{ request.amount_to_pay_shopper|default:"0.00" }}</p>
+                        <p class="text-gray-700 mb-2"><strong>Delivery:</strong> {{ request.delivery_location }}</p>
+                        <p class="text-gray-700"><strong>Contact:</strong> {{ request.contact_details }}</p>
+
+                        {% if request.notes %}
+                            <p class="text-gray-600 mt-2 text-sm"><strong>Notes:</strong> {{ request.notes }}</p>
+                        {% endif %}
+
+                        <p class="text-gray-500 text-sm mt-3">Requested on: {{ request.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white rounded-lg shadow p-8 text-center">
+                    <p class="text-gray-600">You haven't received any shopping requests yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

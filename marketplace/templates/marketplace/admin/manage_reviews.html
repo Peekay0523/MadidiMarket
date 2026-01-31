@@ -1,0 +1,160 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Manage Reviews - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <h1 class="text-3xl font-bold">Manage Reviews</h1>
+        <a href="{% url 'marketplace:admin_dashboard' %}" class="btn-secondary w-full sm:w-auto text-center">← Back to Dashboard</a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <!-- Mobile view for smaller screens -->
+        <div class="block md:hidden">
+            {% for review in reviews %}
+            <div class="border-b p-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-medium text-gray-900">{{ review.reviewer.username }}</div>
+                        <div class="text-sm text-gray-500">{{ review.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="flex items-center">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            {% else %}
+                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-sm text-gray-700">{{ review.comment }}</div>
+                    <div class="mt-2 text-xs text-gray-500">
+                        {% if review.business %}
+                            Business: {{ review.business.name }}
+                        {% elif review.product %}
+                            Product: {{ review.product.name }}
+                        {% elif review.service %}
+                            Service: {{ review.service.name }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">Likes: {{ review.like_count }}</span>
+                        <span class="text-sm text-gray-600">Dislikes: {{ review.dislike_count }}</span>
+                    </div>
+                    <form method="post" action="{% url 'marketplace:admin_manage_reviews' %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this review?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="review_id" value="{{ review.id }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="text-red-600 hover:text-red-900 text-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-4 text-center text-sm text-gray-500">
+                No reviews found.
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Desktop view -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reviewer</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comment</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Likes/Dislikes</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for review in reviews %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ review.reviewer.username }}</div>
+                            <div class="text-sm text-gray-500">{{ review.reviewer.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 max-w-xs truncate">{{ review.comment }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if review.business %}
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Business</span> {{ review.business.name }}
+                            {% elif review.product %}
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Product</span> {{ review.product.name }}
+                            {% elif review.service %}
+                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Service</span> {{ review.service.name }}
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if user.is_authenticated %}
+                                <button type="button"
+                                        class="text-green-600 like-button"
+                                        data-review-id="{{ review.id }}"
+                                        data-action="like">
+                                    👍 <span class="like-count">{{ review.like_count }}</span>
+                                </button> /
+                                <button type="button"
+                                        class="text-red-600 dislike-button"
+                                        data-review-id="{{ review.id }}"
+                                        data-action="dislike">
+                                    👎 <span class="dislike-count">{{ review.dislike_count }}</span>
+                                </button>
+                            {% else %}
+                                <span class="text-green-600">👍 {{ review.like_count }}</span> /
+                                <span class="text-red-600">👎 {{ review.dislike_count }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ review.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <form method="post" action="{% url 'marketplace:admin_manage_reviews' %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this review?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="review_id" value="{{ review.id }}">
+                                <input type="hidden" name="action" value="delete">
+                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No reviews found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

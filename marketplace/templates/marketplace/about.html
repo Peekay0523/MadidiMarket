@@ -1,0 +1,52 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}About - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">About Madidi Market</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+            <h2 class="text-2xl font-semibold mb-4">Our Mission</h2>
+            <p class="text-gray-600 mb-6">Madidi Market connects local businesses with customers in the Madidi region, fostering economic growth and community development. We believe that supporting local enterprises strengthens our community.</p>
+            
+            <h2 class="text-2xl font-semibold mb-4">What We Offer</h2>
+            <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-6">
+                <li>A platform for local businesses to showcase their products and services</li>
+                <li>Easy access to goods and services for community members</li>
+                <li>Tools for entrepreneurs to understand market demand</li>
+                <li>Secure transactions and reliable vendor verification</li>
+                <li>Community-driven reviews and recommendations</li>
+            </ul>
+        </div>
+        
+        <div class="flex justify-center items-center">
+            <div class="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64 flex items-center justify-center text-gray-500">
+                About Image
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-12">
+        <h2 class="text-2xl font-semibold mb-6">Frequently Asked Questions</h2>
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-lg font-semibold">How do I register my business?</h3>
+                <p class="text-gray-600 mt-2">Click on the "Register Business" button in the navigation menu and fill out the required information. Our team will review your application and approve it.</p>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold">How do I request a product or service?</h3>
+                <p class="text-gray-600 mt-2">Log in to your account and navigate to the "Request Product" or "Request Service" page. Fill out the form with details about what you're looking for.</p>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold">Is there a fee to use Madidi Market?</h3>
+                <p class="text-gray-600 mt-2">Creating an account and browsing products/services is free. We charge a small commission fee on successful transactions to support platform maintenance and development.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

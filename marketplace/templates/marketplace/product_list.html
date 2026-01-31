@@ -1,0 +1,76 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Products - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Products Available in Madidi</h1>
+    
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Filters sidebar -->
+        <div class="md:w-1/4">
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">Filter by Category</h2>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'marketplace:product_list' %}" class="block py-2 {% if not request.GET.category %}font-bold text-blue-600{% endif %} transform transition duration-300 hover:scale-105 hover:text-blue-700">All Products</a></li>
+                    {% for category in categories %}
+                        <li>
+                            <a href="?category={{ category.id }}" class="block py-2 {% if request.GET.category|add:"0" == category.id|stringformat:"i" %}font-bold text-blue-600{% endif %} transform transition duration-300 hover:scale-105 hover:text-blue-700">
+                                {{ category.name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="card mt-6">
+                <h2 class="text-xl font-semibold mb-4">Request a Product</h2>
+                <p class="mb-4">Can't find what you're looking for? Request it and local businesses might stock it!</p>
+                <a href="{% url 'marketplace:request_product' %}" class="btn-primary w-full transform transition duration-300 hover:scale-105 hover:bg-blue-700">Request Product</a>
+            </div>
+        </div>
+        
+        <!-- Products grid -->
+        <div class="md:w-3/4">
+            {% if products %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for product in products %}
+                    <div class="card transform transition duration-300 hover:scale-105 hover:shadow-xl">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-48 object-cover rounded-t-lg">
+                        {% else %}
+                            <div class="bg-gray-200 border-2 border-dashed rounded-t-lg w-full h-48 flex items-center justify-center text-gray-500">
+                                No Image
+                            </div>
+                        {% endif %}
+                        <h3 class="text-xl font-semibold mt-4">{{ product.name }}</h3>
+                        <p class="text-gray-600 mt-2">{{ product.description|truncatewords:15 }}</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-lg font-bold text-blue-600">${{ product.price }}</span>
+                            <span class="text-sm text-gray-500">Stock: {{ product.stock_quantity }}</span>
+                        </div>
+                        <div class="mt-4 flex justify-between">
+                            <a href="{% url 'marketplace:product_detail' product.pk %}" class="btn-primary transform transition duration-300 hover:scale-105 hover:bg-blue-700">View Details</a>
+                            {% if user.userprofile.user_type == 'business_owner' and user.userprofile.is_approved %}
+                                <span class="text-sm text-gray-500">{{ product.business.name }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <h3 class="text-xl font-semibold mb-2">No products found</h3>
+                    <p class="text-gray-600 mb-4">There are currently no products available in this category.</p>
+                    {% if user.userprofile.user_type == 'business_owner' and user.userprofile.is_approved %}
+                        <a href="{% url 'marketplace:business_dashboard' %}" class="btn-primary transform transition duration-300 hover:scale-105 hover:bg-blue-700">Go to Business Dashboard</a>
+                    {% else %}
+                        <p class="text-gray-600">Consider requesting this product or checking back later.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for Madidi Market */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.navbar {
+  @apply bg-white shadow-md py-4 px-6 flex justify-between items-center;
+}
+
+.hero {
+  @apply bg-gradient-to-r from-blue-500 to-green-500 text-white py-20;
+}
+
+.card {
+  @apply bg-white rounded-lg shadow-md p-6 mb-6;
+}
+
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded;
+}
+
+.btn-secondary {
+  @apply bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded;
+}
+
+.form-input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.rating-star {
+  @apply text-yellow-400 cursor-pointer;
+}
+
+footer {
+  @apply bg-gray-800 text-white py-8 mt-12;
+}

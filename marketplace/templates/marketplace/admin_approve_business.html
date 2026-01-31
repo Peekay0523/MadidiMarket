@@ -1,0 +1,61 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Approve Business Owners - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Approve Business Owners</h1>
+    
+    {% if pending_businesses %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="py-3 px-4 text-left">Business Owner</th>
+                        <th class="py-3 px-4 text-left">Email</th>
+                        <th class="py-3 px-4 text-left">Business Name</th>
+                        <th class="py-3 px-4 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for profile in pending_businesses %}
+                        <tr>
+                            <td class="py-3 px-4">{{ profile.user.username }}</td>
+                            <td class="py-3 px-4">{{ profile.user.email }}</td>
+                            <td class="py-3 px-4">
+                                {% with business=profile.user.businesses.all.first %}
+                                    {% if business %}
+                                        {{ business.name }}
+                                    {% else %}
+                                        <span class="text-gray-500">No business registered</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="py-3 px-4">
+                                <form method="post" class="inline-block" onsubmit="return confirm('Are you sure you want to approve this business owner?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ profile.id }}">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn-primary mr-2">Approve</button>
+                                </form>
+                                <form method="post" class="inline-block" onsubmit="return confirm('Are you sure you want to reject this business owner?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ profile.id }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn-secondary">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <h3 class="text-xl font-semibold mb-2">No pending approvals</h3>
+            <p class="text-gray-600">There are currently no business owners awaiting approval.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

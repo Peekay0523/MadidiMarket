@@ -1,0 +1,50 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Customer Reviews - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Customer Reviews</h1>
+        <a href="{% url 'marketplace:business_dashboard' %}" class="btn-secondary transform transition duration-300 hover:scale-105 hover:bg-gray-600">Back to Dashboard</a>
+    </div>
+    
+    {% if reviews %}
+        <div class="space-y-6">
+            {% for review in reviews %}
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-semibold">{{ review.reviewer.username }}</h3>
+                            <div class="flex text-yellow-400 mt-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% if review.product %}
+                                <p class="text-gray-600 mt-2">Reviewed product: <a href="{% url 'marketplace:product_detail' review.product.pk %}" class="text-blue-600 hover:underline">{{ review.product.name }}</a></p>
+                            {% elif review.service %}
+                                <p class="text-gray-600 mt-2">Reviewed service: <a href="{% url 'marketplace:service_detail' review.service.pk %}" class="text-blue-600 hover:underline">{{ review.service.name }}</a></p>
+                            {% endif %}
+                        </div>
+                        <span class="text-gray-500 text-sm">{{ review.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    {% if review.comment %}
+                        <p class="mt-4 text-gray-700">{{ review.comment }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <h3 class="text-xl font-semibold mb-4">No Reviews Yet</h3>
+            <p class="text-gray-600">You don't have any customer reviews yet. Continue providing excellent service to receive reviews!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

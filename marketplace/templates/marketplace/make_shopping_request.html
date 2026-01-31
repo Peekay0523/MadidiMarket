@@ -1,0 +1,126 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Make Shopping Request - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Request Items from {{ trip.user.username }}</h1>
+    
+    <div class="max-w-2xl mx-auto">
+        <!-- Trip Information -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Shopping Trip Details</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-700"><strong>Shopper:</strong> {{ trip.user.username }}</p>
+                    <p class="text-gray-700"><strong>Destination:</strong> {{ trip.destination|default:"Various stores" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-700"><strong>Departure:</strong> {{ trip.planned_departure_time|date:"M d, Y H:i" }}</p>
+                    <p class="text-gray-700"><strong>Return:</strong> {{ trip.estimated_return_time|date:"M d, Y H:i" }}</p>
+                </div>
+            </div>
+            {% if trip.notes %}
+                <div class="mt-4">
+                    <p class="text-gray-700"><strong>Notes:</strong> {{ trip.notes }}</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Request Form -->
+        <div class="bg-white rounded-lg shadow p-8">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-6">
+                    <label for="items_requested" class="block text-gray-700 font-medium mb-2">Items Requested *</label>
+                    <textarea
+                        id="items_requested"
+                        name="items_requested"
+                        rows="4"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="List the items you need, including quantities and brands if specific..."
+                        required
+                    >{{ request.POST.items_requested|default:'' }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="estimated_total_cost" class="block text-gray-700 font-medium mb-2">Estimated Total Cost (R) *</label>
+                        <input
+                            type="number"
+                            id="estimated_total_cost"
+                            name="estimated_total_cost"
+                            min="0"
+                            step="0.01"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0.00"
+                            value="{{ request.POST.estimated_total_cost|default:'' }}"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="amount_to_pay_shopper" class="block text-gray-700 font-medium mb-2">Amount to Pay Shopper (R) *</label>
+                        <input
+                            type="number"
+                            id="amount_to_pay_shopper"
+                            name="amount_to_pay_shopper"
+                            min="0"
+                            step="0.01"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0.00"
+                            value="{{ request.POST.amount_to_pay_shopper|default:'' }}"
+                            required
+                        >
+                        <p class="text-gray-500 text-sm mt-1">Must be greater than estimated cost to appreciate the shopper's effort</p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label for="delivery_location" class="block text-gray-700 font-medium mb-2">Delivery Location *</label>
+                    <input
+                        type="text"
+                        id="delivery_location"
+                        name="delivery_location"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Where should the items be delivered?"
+                        value="{{ request.POST.delivery_location|default:'' }}"
+                        required
+                    >
+                </div>
+
+                <div class="mb-6">
+                    <label for="contact_details" class="block text-gray-700 font-medium mb-2">Contact Details *</label>
+                    <input
+                        type="text"
+                        id="contact_details"
+                        name="contact_details"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="How can the shopper contact you? (phone, email, etc.)"
+                        value="{{ request.POST.contact_details|default:'' }}"
+                        required
+                    >
+                </div>
+                
+                <div class="mb-6">
+                    <label for="notes" class="block text-gray-700 font-medium mb-2">Additional Notes (Optional)</label>
+                    <textarea 
+                        id="notes" 
+                        name="notes" 
+                        rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Any additional information for the shopper..."
+                    >{{ request.POST.notes|default:'' }}</textarea>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button type="submit" class="btn-primary flex-1">Send Request</button>
+                    <a href="{% url 'marketplace:go_shopping' %}" class="btn-secondary flex-1 text-center">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

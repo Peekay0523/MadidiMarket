@@ -1,0 +1,53 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Businesses - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Our Businesses</h1>
+
+    {% if businesses %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for business in businesses %}
+            <div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
+                {% if business.logo %}
+                    <img src="{{ business.logo.url }}" alt="{{ business.name }}" class="w-24 h-24 object-contain rounded-lg mb-4">
+                {% else %}
+                    <div class="bg-gray-200 border-2 border-dashed rounded-md w-24 h-24 flex items-center justify-center text-gray-500 mb-4">
+                        Logo
+                    </div>
+                {% endif %}
+
+                <h2 class="text-xl font-bold mb-2">{{ business.name }}</h2>
+
+                <div class="flex items-center mb-3">
+                    <div class="flex text-yellow-400">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= business.avg_rating|floatformat:0 %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="ml-2 text-gray-600">({{ business.reviews.count }} reviews)</span>
+                </div>
+
+                <p class="text-gray-600 mb-4">{{ business.description|truncatewords:20 }}</p>
+
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500">{{ business.address|truncatechars:30 }}</span>
+                    <a href="{% url 'marketplace:business_detail' business.id %}" class="btn-primary">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-600 text-lg">No businesses available at the moment.</p>
+            <a href="{% url 'marketplace:home' %}" class="btn-primary mt-4 inline-block">Return Home</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

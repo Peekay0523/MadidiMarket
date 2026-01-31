@@ -1,0 +1,159 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <a href="{% url 'marketplace:admin_manage_users' %}" class="bg-blue-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-blue-800">Total Users</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ total_users }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_manage_users' %}?user_type=client" class="bg-green-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-green-800">Clients</h3>
+            <p class="text-3xl font-bold text-green-600">{{ total_clients }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_manage_users' %}?user_type=business_owner" class="bg-yellow-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-yellow-800">Business Owners</h3>
+            <p class="text-3xl font-bold text-yellow-600">{{ total_business_owners }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_approve_business' %}" class="bg-purple-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-purple-800">Pending Approvals</h3>
+            <p class="text-3xl font-bold text-purple-600">{{ pending_businesses }}</p>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <a href="{% url 'marketplace:admin_manage_businesses' %}?status=approved" class="bg-red-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-red-800">Approved Businesses</h3>
+            <p class="text-3xl font-bold text-red-600">{{ approved_businesses }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_manage_products' %}" class="bg-indigo-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-indigo-800">Products</h3>
+            <p class="text-3xl font-bold text-indigo-600">{{ total_products }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_manage_services' %}" class="bg-pink-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-pink-800">Services</h3>
+            <p class="text-3xl font-bold text-pink-600">{{ total_services }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_manage_orders' %}" class="bg-teal-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-teal-800">Orders</h3>
+            <p class="text-3xl font-bold text-teal-600">{{ total_orders }}</p>
+        </a>
+    </div>
+
+    <!-- Shopping Trips & Requests Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-orange-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-orange-800">Total Shopping Trips</h3>
+            <p class="text-3xl font-bold text-orange-600">{{ total_shopping_trips }}</p>
+        </div>
+        <div class="bg-orange-200 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-orange-900">Active Trips</h3>
+            <p class="text-3xl font-bold text-orange-700">{{ active_shopping_trips }}</p>
+        </div>
+        <div class="bg-cyan-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-cyan-800">Total Requests</h3>
+            <p class="text-3xl font-bold text-cyan-600">{{ total_shopping_requests }}</p>
+        </div>
+        <div class="bg-cyan-200 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-cyan-900">Pending Requests</h3>
+            <p class="text-3xl font-bold text-cyan-700">{{ pending_shopping_requests }}</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{% url 'marketplace:admin_manage_users' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Users</h3>
+                <p class="text-gray-600">View and manage all users in the system</p>
+            </a>
+            <a href="{% url 'marketplace:admin_manage_businesses' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Businesses</h3>
+                <p class="text-gray-600">View and manage all businesses</p>
+            </a>
+            <a href="{% url 'marketplace:admin_approve_business' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Approve Businesses</h3>
+                <p class="text-gray-600">Review and approve pending business owners</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Shopping Trips -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Recent Shopping Trips</h2>
+                <a href="{% url 'marketplace:go_shopping' %}" class="text-blue-600 hover:underline text-sm">View All</a>
+            </div>
+            {% if recent_shopping_trips %}
+                <div class="space-y-4">
+                    {% for trip in recent_shopping_trips|slice:":5" %}
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-medium">{{ trip.user.username }}</h4>
+                                <p class="text-gray-600 text-sm">{{ trip.destination|default:"Various stores" }}</p>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                {{ trip.status|title }}
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <p class="text-gray-700 text-sm"><strong>Departure:</strong> {{ trip.planned_departure_time|date:"M d, H:i" }}</p>
+                            <p class="text-gray-700 text-sm"><strong>Created:</strong> {{ trip.created_at|date:"M d, H:i" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-sm">No recent shopping trips.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Shopping Requests -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Recent Shopping Requests</h2>
+                <a href="{% url 'marketplace:my_shopping_requests' %}" class="text-blue-600 hover:underline text-sm">View All</a>
+            </div>
+            {% if recent_shopping_requests %}
+                <div class="space-y-4">
+                    {% for request in recent_shopping_requests|slice:":5" %}
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-medium">{{ request.requester.username }} → {{ request.shopper.username }}</h4>
+                                <p class="text-gray-600 text-sm truncate">{{ request.items_requested|truncatechars:50 }}</p>
+                            </div>
+                            <span class="text-xs
+                                {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif request.status == 'accepted' %}bg-green-100 text-green-800
+                                {% elif request.status == 'rejected' %}bg-red-100 text-red-800
+                                {% elif request.status == 'completed' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}
+                                px-2 py-1 rounded">
+                                {{ request.status|title }}
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <p class="text-gray-700 text-sm"><strong>Pay:</strong> R{{ request.amount_to_pay_shopper|default:"0.00" }}</p>
+                            <p class="text-gray-700 text-sm"><strong>Created:</strong> {{ request.created_at|date:"M d, H:i" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600 text-sm">No recent shopping requests.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

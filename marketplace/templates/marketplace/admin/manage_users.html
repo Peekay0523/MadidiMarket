@@ -1,0 +1,80 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Manage Users - Admin - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Manage Users</h1>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-3 px-4 text-left">Username</th>
+                    <th class="py-3 px-4 text-left">Email</th>
+                    <th class="py-3 px-4 text-left">User Type</th>
+                    <th class="py-3 px-4 text-left">Approval Status</th>
+                    <th class="py-3 px-4 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for user in users %}
+                <tr>
+                    <td class="py-3 px-4">{{ user.username }}</td>
+                    <td class="py-3 px-4">{{ user.email }}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium 
+                            {% if user.userprofile.user_type == 'client' %}bg-blue-100 text-blue-800
+                            {% elif user.userprofile.user_type == 'business_owner' %}bg-yellow-100 text-yellow-800
+                            {% elif user.userprofile.user_type == 'admin' %}bg-red-100 text-red-800
+                            {% endif %}">
+                            {{ user.userprofile.user_type|title }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if user.userprofile.user_type == 'business_owner' %}
+                            <span class="px-2 py-1 rounded-full text-xs font-medium 
+                                {% if user.userprofile.is_approved %}bg-green-100 text-green-800
+                                {% else %}bg-red-100 text-red-800
+                                {% endif %}">
+                                {% if user.userprofile.is_approved %}Approved{% else %}Pending{% endif %}
+                            </span>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex space-x-2">
+                            {% if user.userprofile.user_type == 'business_owner' %}
+                                <form method="post" class="inline" 
+                                      onsubmit="return confirm('Are you sure you want to toggle approval status for {{ user.username }}?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="action" value="toggle_approval">
+                                    <button type="submit" class="btn-secondary text-sm">
+                                        {% if user.userprofile.is_approved %}Unapprove{% else %}Approve{% endif %}
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            <form method="post" class="inline"
+                                  onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                <input type="hidden" name="action" value="delete">
+                                <button type="submit" class="btn-danger text-sm">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-4 px-4 text-center text-gray-500">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

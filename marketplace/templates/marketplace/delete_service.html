@@ -1,0 +1,36 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Delete Service - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">Delete Service</h1>
+        
+        <div class="card p-6">
+            <h2 class="text-xl font-semibold mb-4">Are you sure you want to delete this service?</h2>
+            
+            <div class="mb-6 p-4 bg-gray-100 rounded-lg">
+                <h3 class="font-bold text-lg">{{ service.name }}</h3>
+                <p class="text-gray-700">{{ service.description|truncatewords:20 }}</p>
+                {% if service.price %}
+                    <p class="text-gray-600 mt-2">${{ service.price }} | {{ service.duration|default:"Duration varies" }}</p>
+                {% else %}
+                    <p class="text-gray-600 mt-2">Price varies | {{ service.duration|default:"Duration varies" }}</p>
+                {% endif %}
+            </div>
+            
+            <p class="text-red-600 mb-6">Warning: This action cannot be undone.</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex justify-between">
+                    <a href="{% url 'marketplace:business_dashboard' %}" class="btn-secondary transform transition duration-300 hover:scale-105 hover:bg-gray-600">Cancel</a>
+                    <button type="submit" class="btn-danger transform transition duration-300 hover:scale-105 hover:bg-red-700">Delete Service</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

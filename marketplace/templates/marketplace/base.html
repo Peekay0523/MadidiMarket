@@ -1,0 +1,419 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Madidi Market - Connecting Businesses and Customers{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/output.css' %}">
+    <style>
+    .nav-link {
+        @apply text-gray-700 hover:text-blue-600 transition transform hover:scale-105;
+    }
+    .mobile-link {
+        @apply block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded;
+    }
+    .mobile-btn {
+        @apply block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700;
+    }
+
+    .mobile-link {
+        @apply px-5 py-3 text-gray-700 text-sm font-medium
+               hover:bg-gray-50 transition;
+    }
+
+    .mobile-action {
+        @apply px-5 py-3 text-sm font-medium text-gray-800
+               hover:bg-blue-50 hover:text-blue-600 transition;
+    }
+</style>
+
+
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md px-4 py-3">
+    <div class="flex items-center justify-between">
+
+        <!-- Logo -->
+        <a href="{% url 'marketplace:home' %}">
+            <img src="{% static 'images/Madidi Market.png' %}" alt="MadidiMarket Logo" class="h-10 w-auto">
+        </a>
+
+        <!-- Hamburger Button (Mobile Only) -->
+        <button id="menu-btn" class="md:hidden focus:outline-none">
+            <svg class="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+
+        <!-- Desktop Menu -->
+        <div class="hidden md:flex items-center space-x-4">
+            <a href="{% url 'marketplace:home' %}" class="nav-link">Home</a>
+            <a href="{% url 'marketplace:business_list' %}" class="nav-link">Businesses</a>
+            <a href="{% url 'marketplace:product_list' %}" class="nav-link">Products</a>
+            <a href="{% url 'marketplace:service_list' %}" class="nav-link">Services</a>
+            <a href="{% url 'marketplace:go_shopping' %}" class="nav-link">Go Shopping</a>
+            <a href="{% url 'marketplace:about' %}" class="nav-link">About</a>
+
+            {% if user.is_authenticated %}
+
+                {% if user.userprofile.user_type == 'business_owner' and user.userprofile.is_approved %}
+                    <a href="{% url 'marketplace:toggle_dashboard_view' %}" class="btn-primary">
+                        Switch Dashboard
+                    </a>
+
+                {% elif user.is_staff or user.userprofile.user_type == 'admin' %}
+                    <a href="{% url 'marketplace:admin_dashboard' %}" class="btn-primary">Admin Panel</a>
+                    <a href="{% url 'marketplace:admin_approve_business' %}" class="btn-primary">Approvals</a>
+                    <a href="/admin/" class="btn-primary">Django Admin</a>
+
+                {% else %}
+                    <a href="{% url 'marketplace:client_dashboard' %}" class="btn-primary">My Dashboard</a>
+                {% endif %}
+
+                <!-- Cart -->
+                <a href="{% url 'marketplace:view_cart' %}" class="relative btn-primary">
+                    <i class="fas fa-shopping-cart"></i>
+                    {% if cart_items_count > 0 %}
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {{ cart_items_count }}
+                        </span>
+                    {% endif %}
+                </a>
+
+                <a href="{% url 'marketplace:logout' %}" class="btn-secondary">Logout</a>
+
+            {% else %}
+                <a href="{% url 'marketplace:login' %}" class="btn-primary">Login</a>
+                <a href="{% url 'marketplace:register' %}" class="btn-secondary">Register</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+<!-- Mobile Dropdown Menu -->
+<div id="mobile-menu"
+     class="md:hidden overflow-hidden max-h-0 opacity-0
+            transition-all duration-300 ease-in-out
+            bg-white rounded-xl shadow-lg mt-4">
+
+    <div class="flex flex-col divide-y divide-gray-100">
+
+        <a href="{% url 'marketplace:home' %}" class="mobile-link">Home</a>
+        <a href="{% url 'marketplace:business_list' %}" class="mobile-link">Businesses</a>
+        <a href="{% url 'marketplace:product_list' %}" class="mobile-link">Products</a>
+        <a href="{% url 'marketplace:service_list' %}" class="mobile-link">Services</a>
+        <a href="{% url 'marketplace:go_shopping' %}" class="mobile-link">Go Shopping</a>
+        <a href="{% url 'marketplace:about' %}" class="mobile-link">About</a>
+
+        {% if user.is_authenticated %}
+
+            {% if user.userprofile.user_type == 'business_owner' and user.userprofile.is_approved %}
+                <a href="{% url 'marketplace:toggle_dashboard_view' %}" class="mobile-action">
+                    Switch Dashboard
+                </a>
+
+            {% elif user.is_staff or user.userprofile.user_type == 'admin' %}
+                <a href="{% url 'marketplace:admin_dashboard' %}" class="mobile-action">Admin Panel</a>
+                <a href="{% url 'marketplace:admin_approve_business' %}" class="mobile-action">Approvals</a>
+                <a href="/admin/" class="mobile-action">Django Admin</a>
+
+            {% else %}
+                <a href="{% url 'marketplace:client_dashboard' %}" class="mobile-action">
+                    My Dashboard
+                </a>
+            {% endif %}
+
+            <a href="{% url 'marketplace:view_cart' %}" class="mobile-action flex justify-between items-center">
+                Cart
+                {% if cart_items_count > 0 %}
+                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                        {{ cart_items_count }}
+                    </span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'marketplace:logout' %}"
+               class="mobile-action text-red-600 font-semibold">
+                Logout
+            </a>
+
+        {% else %}
+            <a href="{% url 'marketplace:login' %}" class="mobile-action">Login</a>
+            <a href="{% url 'marketplace:register' %}" class="mobile-action">Register</a>
+        {% endif %}
+
+    </div>
+</div>
+
+</nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mx-auto px-4 mt-4">
+            {% for message in messages %}
+                <div class="p-4 mb-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Recent Reviews Section -->
+    <section class="bg-white py-8">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold mb-6 text-center">What Our Customers Say</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for review in recent_reviews|slice:":6" %}
+                <div class="border rounded-lg p-4 bg-gray-50">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium">{{ review.reviewer.username }}</div>
+                            <div class="flex items-center mt-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            {% if user.is_authenticated %}
+                                <button type="button"
+                                        class="text-sm text-gray-600 like-button"
+                                        data-review-id="{{ review.id }}"
+                                        data-action="like">
+                                    👍 <span class="like-count">{{ review.num_likes }}</span>
+                                </button>
+                                <button type="button"
+                                        class="text-sm text-gray-600 dislike-button"
+                                        data-review-id="{{ review.id }}"
+                                        data-action="dislike">
+                                    👎 <span class="dislike-count">{{ review.num_dislikes }}</span>
+                                </button>
+                            {% else %}
+                                <span class="text-sm text-gray-600">👍 {{ review.num_likes }}</span>
+                                <span class="text-sm text-gray-600">👎 {{ review.num_dislikes }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="mt-2 text-gray-700">{{ review.comment }}</p>
+                    {% if review.business %}
+                    <div class="mt-2 text-sm text-gray-500">
+                        Reviewed: <span class="font-medium">{{ review.business.name }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center text-gray-500 py-8">
+                    No reviews yet. Be the first to share your experience!
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">MadidiMarket</h3>
+                    <p class="text-gray-300">Connecting businesses and customers in Madidi.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'marketplace:home' %}" class="text-gray-300 hover:text-white">Home</a></li>
+                        <li><a href="{% url 'marketplace:product_list' %}" class="text-gray-300 hover:text-white">Products</a></li>
+                        <li><a href="{% url 'marketplace:service_list' %}" class="text-gray-300 hover:text-white">Services</a></li>
+                        <li><a href="{% url 'marketplace:about' %}" class="text-gray-300 hover:text-white">About</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">For Businesses</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'marketplace:business_register' %}" class="text-gray-300 hover:text-white">Register Business</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Advertise Products</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white">Find Customers</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact Us</h4>
+                    <ul class="space-y-2">
+                        <li class="text-gray-300"><i class="fas fa-envelope mr-2"></i> info@madidimarket.com</li>
+                        <li class="text-gray-300"><i class="fas fa-phone mr-2"></i> +27 123 456 789</li>
+                        <li class="text-gray-300"><i class="fas fa-map-marker-alt mr-2"></i> Madidi, NW</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>&copy; 2026 MadidiMarket. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+<script>
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    menuBtn.addEventListener('click', () => {
+        if (mobileMenu.classList.contains('max-h-0')) {
+            mobileMenu.classList.remove('max-h-0', 'opacity-0');
+            mobileMenu.classList.add('max-h-[500px]', 'opacity-100');
+        } else {
+            mobileMenu.classList.add('max-h-0', 'opacity-0');
+            mobileMenu.classList.remove('max-h-[500px]', 'opacity-100');
+        }
+    });
+
+    // Helper function to get cookie value
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Like/Dislike functionality for recent reviews using event delegation
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('like-button') || e.target.classList.contains('dislike-button')) {
+            e.preventDefault();
+
+            const button = e.target;
+            const reviewId = button.getAttribute('data-review-id');
+            const action = button.getAttribute('data-action');
+
+            // Get CSRF token
+            let csrfToken = null;
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfInput) {
+                csrfToken = csrfInput.value;
+            } else {
+                csrfToken = getCookie('csrftoken');
+            }
+
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                alert('Security token missing. Please refresh the page and try again.');
+                return;
+            }
+
+            // Send AJAX request
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('next', window.location.pathname);
+
+            fetch(`/review/${reviewId}/toggle-like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    return response.json();
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Invalid response format');
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update the counts - check if elements exist before updating
+                    const likeButton = document.querySelector(`[data-review-id="${reviewId}"][data-action="like"]`);
+                    const dislikeButton = document.querySelector(`[data-review-id="${reviewId}"][data-action="dislike"]`);
+
+                    // Update like count
+                    if (action === 'like') {
+                        if (likeButton && likeButton.querySelector('.like-count')) {
+                            likeButton.querySelector('.like-count').textContent = data.likes;
+                        }
+
+                        // Update button appearance based on state
+                        if (likeButton) {
+                            if (data.user_action === 'liked') {
+                                likeButton.classList.add('text-blue-600');
+                                likeButton.classList.remove('text-gray-600');
+                            } else if (data.user_action === 'removed_like') {
+                                likeButton.classList.remove('text-blue-600');
+                                likeButton.classList.add('text-gray-600');
+                            }
+                        }
+
+                        // Update dislike button if user switched
+                        if (dislikeButton && data.user_action === 'switched_to_like') {
+                            dislikeButton.classList.remove('text-red-600');
+                            dislikeButton.classList.add('text-gray-600');
+                        }
+                    }
+                    // Update dislike count
+                    else if (action === 'dislike') {
+                        if (dislikeButton && dislikeButton.querySelector('.dislike-count')) {
+                            dislikeButton.querySelector('.dislike-count').textContent = data.dislikes;
+                        }
+
+                        // Update button appearance based on state
+                        if (dislikeButton) {
+                            if (data.user_action === 'disliked') {
+                                dislikeButton.classList.add('text-red-600');
+                                dislikeButton.classList.remove('text-gray-600');
+                            } else if (data.user_action === 'removed_dislike') {
+                                dislikeButton.classList.remove('text-red-600');
+                                dislikeButton.classList.add('text-gray-600');
+                            }
+                        }
+
+                        // Update like button if user switched
+                        if (likeButton && data.user_action === 'switched_to_dislike') {
+                            likeButton.classList.remove('text-blue-600');
+                            likeButton.classList.add('text-gray-600');
+                        }
+                    }
+                } else {
+                    console.error('Server error:', data.error);
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your request.');
+            });
+        }
+    });
+</script>
+
+
+</body>
+</html>

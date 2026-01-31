@@ -1,0 +1,120 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Demand Analytics - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Demand Analytics Dashboard</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Product Requests Overview -->
+        <div class="card">
+            <h2 class="text-2xl font-semibold mb-6">Product Requests</h2>
+            
+            {% if recent_product_requests %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="py-2 px-4 text-left">Category</th>
+                                <th class="py-2 px-4 text-left">Requests</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in recent_product_requests %}
+                            <tr class="border-b">
+                                <td class="py-2 px-4">{{ req.category__name|default:"Uncategorized" }}</td>
+                                <td class="py-2 px-4">{{ req.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-600">No product requests in the last 30 days.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Service Requests Overview -->
+        <div class="card">
+            <h2 class="text-2xl font-semibold mb-6">Service Requests</h2>
+            
+            {% if recent_service_requests %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="py-2 px-4 text-left">Category</th>
+                                <th class="py-2 px-4 text-left">Requests</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in recent_service_requests %}
+                            <tr class="border-b">
+                                <td class="py-2 px-4">{{ req.category__name|default:"Uncategorized" }}</td>
+                                <td class="py-2 px-4">{{ req.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-600">No service requests in the last 30 days.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Top Requested Products -->
+    <div class="card mt-8">
+        <h2 class="text-2xl font-semibold mb-6">Most Requested Products</h2>
+        
+        {% if top_requested_products %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for product in top_requested_products %}
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold">{{ product.title }}</h3>
+                    <p class="text-gray-600">{{ product.count }} requests</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600">No product requests in the last 30 days.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Top Requested Services -->
+    <div class="card mt-8">
+        <h2 class="text-2xl font-semibold mb-6">Most Requested Services</h2>
+        
+        {% if top_requested_services %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for service in top_requested_services %}
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold">{{ service.title }}</h3>
+                    <p class="text-gray-600">{{ service.count }} requests</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600">No service requests in the last 30 days.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Opportunity Insights -->
+    <div class="card mt-8">
+        <h2 class="text-2xl font-semibold mb-6">Opportunity Insights</h2>
+        <p class="text-gray-600 mb-4">Based on the demand analytics, consider expanding your offerings in the following areas:</p>
+        
+        <ul class="list-disc pl-6 space-y-2">
+            {% for req in recent_product_requests|slice:":3" %}
+                <li>Consider offering products in the "{{ req.category__name|default:"Uncategorized" }}" category ({{ req.count }} requests)</li>
+            {% endfor %}
+            
+            {% for req in recent_service_requests|slice:":3" %}
+                <li>Consider providing services in the "{{ req.category__name|default:"Uncategorized" }}" category ({{ req.count }} requests)</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

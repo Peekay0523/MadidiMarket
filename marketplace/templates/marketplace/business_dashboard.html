@@ -1,0 +1,334 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Business Dashboard - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Business Dashboard</h1>
+
+    {% if business %}
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-blue-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-blue-800">Total Products</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ total_products }}</p>
+            </div>
+            <div class="bg-green-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-green-800">Total Services</h3>
+                <p class="text-3xl font-bold text-green-600">{{ total_services }}</p>
+            </div>
+            <div class="bg-yellow-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-yellow-800">Active Listings</h3>
+                <p class="text-3xl font-bold text-yellow-600">{{ total_products|add:total_services }}</p>
+            </div>
+            <div class="bg-purple-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-purple-800">Orders Received</h3>
+                <p class="text-3xl font-bold text-purple-600">{{ total_orders }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <a href="{% url 'marketplace:add_product' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Add Product</h3>
+                    <p class="text-gray-600">Add a new product to your inventory</p>
+                </a>
+                <a href="{% url 'marketplace:add_service' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Add Service</h3>
+                    <p class="text-gray-600">Create a new service offering</p>
+                </a>
+                <a href="{% url 'marketplace:business_orders' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Orders</h3>
+                    <p class="text-gray-600">View and manage customer orders</p>
+                </a>
+                <a href="{% url 'marketplace:demand_analytics' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">View Analytics</h3>
+                    <p class="text-gray-600">See market insights and demand trends</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Business Info -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Business Information</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold mb-2">{{ business.name }}</h3>
+                <p class="text-gray-600 mb-4">{{ business.description }}</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <p><strong>Email:</strong> {{ business.email }}</p>
+                    <p><strong>Phone:</strong> {{ business.phone_number }}</p>
+                    <p><strong>Address:</strong> {{ business.address }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Your Products</h2>
+                <a href="{% url 'marketplace:add_product' %}" class="btn-primary px-6 py-2">Add Product</a>
+            </div>
+            {% if products %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for product in products %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ product.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">R{{ product.price }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ product.stock_quantity }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ product.category.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if product.is_available %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                        {% else %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <a href="{% url 'marketplace:edit_product' product.pk %}" class="text-blue-600 hover:text-blue-900">Edit</a>
+                                        <a href="{% url 'marketplace:delete_product' product.pk %}" class="text-red-600 hover:text-red-900 ml-3">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <p class="text-gray-600">You haven't added any products yet.</p>
+                    <a href="{% url 'marketplace:add_product' %}" class="btn-primary mt-4 inline-block px-6 py-2">Add Your First Product</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Services Section -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Your Services</h2>
+                <a href="{% url 'marketplace:add_service' %}" class="btn-primary px-6 py-2">Add Service</a>
+            </div>
+            {% if services %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for service in services %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ service.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if service.price %}
+                                            R{{ service.price }}
+                                        {% else %}
+                                            Price Varies
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ service.duration|default:"N/A" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ service.category.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if service.is_available %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                        {% else %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <a href="{% url 'marketplace:edit_service' service.pk %}" class="text-blue-600 hover:text-blue-900">Edit</a>
+                                        <a href="{% url 'marketplace:delete_service' service.pk %}" class="text-red-600 hover:text-red-900 ml-3">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <p class="text-gray-600">You haven't added any services yet.</p>
+                    <a href="{% url 'marketplace:add_service' %}" class="btn-primary mt-4 inline-block px-6 py-2">Add Your First Service</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Market Insights Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold mb-2">Demand Analytics</h3>
+                <p class="text-gray-600 mb-4">See what products and services are in demand in Madidi.</p>
+                <a href="{% url 'marketplace:demand_analytics' %}" class="btn-primary px-6 py-2">View Analytics</a>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold mb-2">Customer Reviews</h3>
+                <p class="text-gray-600 mb-4">Check feedback from your customers.</p>
+                <a href="{% url 'marketplace:view_reviews' %}" class="btn-primary px-6 py-2">View Reviews</a>
+            </div>
+        </div>
+
+        <!-- Shopping Trips & Requests -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Shopping Trips & Requests</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Upcoming Shopping Trips -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Upcoming Shopping Trips</h3>
+                            <a href="{% url 'marketplace:go_shopping' %}" class="text-blue-600 hover:underline text-sm">View All</a>
+                        </div>
+                        {% if upcoming_shopping_trips %}
+                            <div class="space-y-4">
+                                {% for trip in upcoming_shopping_trips %}
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h4 class="font-medium">{{ trip.user.username }}</h4>
+                                            <p class="text-gray-600 text-sm">{{ trip.destination|default:"Various stores" }}</p>
+                                        </div>
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                            {{ trip.status|title }}
+                                        </span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <p class="text-gray-700 text-sm"><strong>Departure:</strong> {{ trip.planned_departure_time|date:"M d, H:i" }}</p>
+                                        <p class="text-gray-700 text-sm"><strong>Return:</strong> {{ trip.estimated_return_time|date:"M d, H:i" }}</p>
+                                        <p class="text-gray-700 text-sm"><strong>Requests:</strong> {{ trip.request_count }}</p>
+                                    </div>
+                                    <a href="{% url 'marketplace:make_shopping_request' trip.id %}" class="btn-primary text-sm py-1 px-3">
+                                        Request Items
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-600 text-sm">No upcoming shopping trips available.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- My Shopping Requests -->
+                <div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">My Shopping Requests</h3>
+                        {% if sent_shopping_requests %}
+                            <div class="space-y-3">
+                                {% for request in sent_shopping_requests %}
+                                <div class="border rounded-lg p-3">
+                                    <div class="flex justify-between">
+                                        <p class="text-sm font-medium">{{ request.shopper.username }}</p>
+                                        <span class="text-xs
+                                            {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                            {% elif request.status == 'accepted' %}bg-green-100 text-green-800
+                                            {% elif request.status == 'rejected' %}bg-red-100 text-red-800
+                                            {% elif request.status == 'completed' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}
+                                            px-2 py-1 rounded">
+                                            {{ request.status|title }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 truncate">R{{ request.amount_to_pay_shopper|default:"0.00" }}</p>
+                                    <p class="text-xs text-gray-500">{{ request.created_at|date:"M d" }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-600 text-sm">No shopping requests made yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Reviews Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Recent Customer Reviews</h2>
+            {% if business.reviews.all %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    {% for review in business.reviews.all|dictsortreversed:"created_at"|slice:":5" %}
+                        <div class="border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-medium">{{ review.reviewer.username }}</div>
+                                    <div class="flex items-center mt-1">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            {% else %}
+                                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <span class="ml-2 text-sm text-gray-600">{{ review.created_at|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    {% if user.is_authenticated %}
+                                        <button type="button"
+                                                class="text-sm text-gray-600 like-button"
+                                                data-review-id="{{ review.id }}"
+                                                data-action="like">
+                                            👍 <span class="like-count">{{ review.like_count }}</span>
+                                        </button>
+                                        <button type="button"
+                                                class="text-sm text-gray-600 dislike-button"
+                                                data-review-id="{{ review.id }}"
+                                                data-action="dislike">
+                                            👎 <span class="dislike-count">{{ review.dislike_count }}</span>
+                                        </button>
+                                    {% else %}
+                                        <span class="text-sm text-gray-600">👍 {{ review.like_count }}</span>
+                                        <span class="text-sm text-gray-600">👎 {{ review.dislike_count }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <p class="mt-2 text-gray-700">{{ review.comment }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <p class="text-gray-600">No reviews yet. Encourage your customers to leave reviews!</p>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <h3 class="text-xl font-semibold mb-4">No Business Registered</h3>
+            <p class="text-gray-600 mb-6">You haven't registered a business yet. Register your business to start selling products and services.</p>
+            <a href="{% url 'marketplace:business_register' %}" class="btn-primary px-6 py-2">Register Your Business</a>
+        </div>
+    {% endif %}
+
+    <div class="flex justify-end">
+        <a href="{% url 'marketplace:toggle_dashboard_view' %}" class="btn-primary px-6 py-2">Switch to Client Dashboard</a>
+    </div>
+</div>
+{% endblock %}
