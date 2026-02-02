@@ -414,5 +414,12 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Switch Dashboard Option for Business Owners -->
+    {% if user.is_authenticated and user.userprofile.user_type == 'business_owner' and user.userprofile.is_approved %}
+    <div class="flex justify-end mt-8">
+        <a href="{% url 'marketplace:toggle_dashboard_view' %}" class="btn-primary px-6 py-2">Switch to Business Dashboard</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -196,6 +196,44 @@ def business_dashboard(request):
 
 @login_required
 @business_owner_required
+def business_products(request):
+    """Display products for the logged-in business owner"""
+    business = Business.objects.filter(owner=request.user).first()
+    if not business:
+        messages.error(request, 'You must have a registered business to view products.')
+        return redirect('marketplace:business_dashboard')
+
+    products = Product.objects.filter(business=business)
+
+    context = {
+        'business': business,
+        'products': products,
+        'total_products': products.count(),
+    }
+    return render(request, 'marketplace/business_products.html', context)
+
+
+@login_required
+@business_owner_required
+def business_services(request):
+    """Display services for the logged-in business owner"""
+    business = Business.objects.filter(owner=request.user).first()
+    if not business:
+        messages.error(request, 'You must have a registered business to view services.')
+        return redirect('marketplace:business_dashboard')
+
+    services = Service.objects.filter(business=business)
+
+    context = {
+        'business': business,
+        'services': services,
+        'total_services': services.count(),
+    }
+    return render(request, 'marketplace/business_services.html', context)
+
+
+@login_required
+@business_owner_required
 def demand_analytics(request):
     """
     Dashboard showing demand analytics for entrepreneurs
@@ -1958,3 +1996,111 @@ def admin_manage_businesses(request):
         'current_status': status,
     }
     return render(request, 'marketplace/admin/manage_businesses.html', context)
+
+
+@login_required
+def admin_manage_shopping_trips(request):
+    """Manage all shopping trips in the system"""
+    if not request.user.is_staff and request.user.userprofile.user_type != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('marketplace:home')
+
+    # Get query parameter for filtering
+    status = request.GET.get('status', 'all')
+
+    shopping_trips = ShoppingTrip.objects.select_related('user').all()
+
+    # Apply filter based on status
+    if status != 'all':
+        shopping_trips = shopping_trips.filter(status=status)
+
+    # Calculate stats
+    total_shopping_trips = ShoppingTrip.objects.count()
+    active_trips = ShoppingTrip.objects.filter(status='available').count()
+    completed_trips = ShoppingTrip.objects.filter(status='completed').count()
+    cancelled_trips = ShoppingTrip.objects.filter(status='cancelled').count()
+
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(shopping_trips, 10)  # Show 10 trips per page
+    page_number = request.GET.get('page')
+    shopping_trips = paginator.get_page(page_number)
+
+    context = {
+        'shopping_trips': shopping_trips,
+        'total_shopping_trips': total_shopping_trips,
+        'active_trips': active_trips,
+        'completed_trips': completed_trips,
+        'cancelled_trips': cancelled_trips,
+        'current_status': status,
+    }
+    return render(request, 'marketplace/admin/manage_shopping_trips.html', context)
+
+
+@login_required
+def admin_manage_shopping_requests(request):
+    """Manage all shopping requests in the system"""
+    if not request.user.is_staff and request.user.userprofile.user_type != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('marketplace:home')
+
+    # Get query parameter for filtering
+    status = request.GET.get('status', 'all')
+
+    shopping_requests = ShoppingRequest.objects.select_related('requester', 'shopper', 'shopping_trip__user').all()
+
+    # Apply filter based on status
+    if status != 'all':
+        shopping_requests = shopping_requests.filter(status=status)
+
+    # Calculate stats
+    total_shopping_requests = ShoppingRequest.objects.count()
+    pending_requests = ShoppingRequest.objects.filter(status='pending').count()
+    accepted_requests = ShoppingRequest.objects.filter(status='accepted').count()
+    completed_requests = ShoppingRequest.objects.filter(status='completed').count()
+    rejected_requests = ShoppingRequest.objects.filter(status='rejected').count()
+
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(shopping_requests, 10)  # Show 10 requests per page
+    page_number = request.GET.get('page')
+    shopping_requests = paginator.get_page(page_number)
+
+    context = {
+        'shopping_requests': shopping_requests,
+        'total_shopping_requests': total_shopping_requests,
+        'pending_requests': pending_requests,
+        'accepted_requests': accepted_requests,
+        'completed_requests': completed_requests,
+        'rejected_requests': rejected_requests,
+        'current_status': status,
+    }
+    return render(request, 'marketplace/admin/manage_shopping_requests.html', context)
+
+
+@login_required
+@business_owner_required
+def my_business(request):
+    """Display business owner's business profile and information"""
+    business = Business.objects.filter(owner=request.user).first()
+
+    if not business:
+        messages.error(request, 'You must have a registered business to view business details.')
+        return redirect('marketplace:business_register')
+
+    # Get business statistics
+    total_products = Product.objects.filter(business=business).count()
+    total_services = Service.objects.filter(business=business).count()
+    total_orders = Order.objects.filter(business=business).count()
+
+    # Get recent reviews for the business
+    recent_reviews = business.reviews.select_related('reviewer').order_by('-created_at')[:5]
+
+    context = {
+        'business': business,
+        'total_products': total_products,
+        'total_services': total_services,
+        'total_orders': total_orders,
+        'recent_reviews': recent_reviews,
+    }
+    return render(request, 'marketplace/my_business.html', context)

@@ -1,0 +1,125 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}My Services - Business Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">My Services</h1>
+
+    {% if business %}
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-green-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-green-800">Total Services</h3>
+                <p class="text-3xl font-bold text-green-600">{{ total_services }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">Active Services</h3>
+                <p class="text-3xl font-bold text-green-600">{{ services|length }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="{% url 'marketplace:add_service' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Add Service</h3>
+                    <p class="text-gray-600">Create a new service offering</p>
+                </a>
+                <a href="{% url 'marketplace:business_dashboard' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Back to Business Dashboard</h3>
+                    <p class="text-gray-600">Return to your business dashboard</p>
+                </a>
+                <a href="{% url 'marketplace:business_products' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">View Products</h3>
+                    <p class="text-gray-600">Manage your products</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Business Info -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Business Information</h2>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold mb-2">{{ business.name }}</h3>
+                <p class="text-gray-600 mb-4">{{ business.description }}</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <p><strong>Email:</strong> {{ business.email }}</p>
+                    <p><strong>Phone:</strong> {{ business.phone_number }}</p>
+                    <p><strong>Address:</strong> {{ business.address }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Section -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Your Services</h2>
+                <a href="{% url 'marketplace:add_service' %}" class="btn-primary px-6 py-2">Add Service</a>
+            </div>
+            {% if services %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for service in services %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ service.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if service.price %}
+                                            R{{ service.price }}
+                                        {% else %}
+                                            Price Varies
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ service.duration|default:"N/A" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ service.category.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if service.is_available %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                        {% else %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <a href="{% url 'marketplace:edit_service' service.pk %}" class="text-blue-600 hover:text-blue-900">Edit</a>
+                                        <a href="{% url 'marketplace:delete_service' service.pk %}" class="text-red-600 hover:text-red-900 ml-3">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <p class="text-gray-600">You haven't added any services yet.</p>
+                    <a href="{% url 'marketplace:add_service' %}" class="btn-primary mt-4 inline-block px-6 py-2">Add Your First Service</a>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <h3 class="text-xl font-semibold mb-4">No Business Registered</h3>
+            <p class="text-gray-600 mb-6">You haven't registered a business yet. Register your business to start offering services.</p>
+            <a href="{% url 'marketplace:business_register' %}" class="btn-primary px-6 py-2">Register Your Business</a>
+        </div>
+    {% endif %}
+
+    <div class="flex justify-end">
+        <a href="{% url 'marketplace:toggle_dashboard_view' %}" class="btn-primary px-6 py-2">Switch to Client Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -49,6 +49,9 @@ urlpatterns = [
 
     # Business dashboard and analytics
     path('business/demand-analytics/', views.demand_analytics, name='demand_analytics'),
+    path('business/products/', views.business_products, name='business_products'),
+    path('business/services/', views.business_services, name='business_services'),
+    path('business/my-business/', views.my_business, name='my_business'),
     path('business/add-product/', views.add_product, name='add_product'),
     path('business/add-service/', views.add_service, name='add_service'),
     path('business/view-reviews/', views.view_reviews, name='view_reviews'),
@@ -78,6 +81,8 @@ urlpatterns = [
     path('admin-panel/products/', views.admin_manage_products, name='admin_manage_products'),
     path('admin-panel/services/', views.admin_manage_services, name='admin_manage_services'),
     path('admin-panel/reviews/', views.admin_manage_reviews, name='admin_manage_reviews'),
+    path('admin-panel/shopping-trips/', views.admin_manage_shopping_trips, name='admin_manage_shopping_trips'),
+    path('admin-panel/shopping-requests/', views.admin_manage_shopping_requests, name='admin_manage_shopping_requests'),
 
     # Review functionality
     path('business/<int:business_id>/rate/', views.rate_business, name='rate_business'),

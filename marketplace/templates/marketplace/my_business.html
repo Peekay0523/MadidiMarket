@@ -1,0 +1,101 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}My Business - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">My Business</h1>
+
+    {% if business %}
+        <!-- Business Info -->
+        <div class="bg-white p-6 rounded-lg shadow mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold">{{ business.name }}</h2>
+                    <p class="text-gray-600 mt-2">{{ business.description }}</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <a href="{% url 'marketplace:business_dashboard' %}" class="btn-primary px-4 py-2">Manage Business</a>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold">Email</h3>
+                    <p>{{ business.email|default:"Not provided" }}</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold">Phone</h3>
+                    <p>{{ business.phone_number|default:"Not provided" }}</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold">Address</h3>
+                    <p>{{ business.address|default:"Not provided" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-blue-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-blue-800">Total Products</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ total_products }}</p>
+            </div>
+            <div class="bg-green-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-green-800">Total Services</h3>
+                <p class="text-3xl font-bold text-green-600">{{ total_services }}</p>
+            </div>
+            <div class="bg-purple-100 p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-purple-800">Total Orders</h3>
+                <p class="text-3xl font-bold text-purple-600">{{ total_orders }}</p>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Recent Reviews</h2>
+            {% if recent_reviews %}
+                <div class="space-y-4">
+                    {% for review in recent_reviews %}
+                    <div class="border-b pb-4 last:border-b-0 last:pb-0">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium">{{ review.reviewer.username }}</h4>
+                                <div class="flex items-center mt-1">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ml-2 text-sm text-gray-600">{{ review.created_at|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% if review.comment %}
+                            <p class="mt-2 text-gray-700">{{ review.comment }}</p>
+                        {% else %}
+                            <p class="mt-2 text-gray-500 italic">No comment provided</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600">No reviews yet for your business.</p>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <h3 class="text-xl font-semibold mb-4">No Business Registered</h3>
+            <p class="text-gray-600 mb-6">You haven't registered a business yet. Register your business to start selling products and services.</p>
+            <a href="{% url 'marketplace:business_register' %}" class="btn-primary px-6 py-2">Register Your Business</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

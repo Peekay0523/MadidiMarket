@@ -1,0 +1,121 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Manage Shopping Requests - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Manage Shopping Requests</h1>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-blue-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-blue-800">Total Requests</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ total_shopping_requests }}</p>
+        </div>
+        <div class="bg-green-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-green-800">Completed</h3>
+            <p class="text-3xl font-bold text-green-600">{{ completed_requests }}</p>
+        </div>
+        <div class="bg-yellow-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-yellow-800">Pending</h3>
+            <p class="text-3xl font-bold text-yellow-600">{{ pending_requests }}</p>
+        </div>
+        <div class="bg-red-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-yellow-800">Rejected</h3>
+            <p class="text-3xl font-bold text-yellow-600">{{ rejected_requests }}</p>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="mb-6 flex flex-col md:flex-row gap-4">
+        <input type="text" placeholder="Search requests..." class="flex-grow px-4 py-2 border border-gray-300 rounded-lg">
+        <select class="px-4 py-2 border border-gray-300 rounded-lg">
+            <option>All Statuses</option>
+            <option>Pending</option>
+            <option>Accepted</option>
+            <option>Rejected</option>
+            <option>Completed</option>
+        </select>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Filter</button>
+    </div>
+
+    <!-- Shopping Requests Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shopper</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for request in shopping_requests %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">#{{ request.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ request.requester.username }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ request.shopper.username }}</td>
+                    <td class="px-6 py-4 max-w-xs truncate">{{ request.items_requested }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">R{{ request.amount_to_pay_shopper|default:"0.00" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif request.status == 'accepted' %}bg-green-100 text-green-800
+                            {% elif request.status == 'rejected' %}bg-red-100 text-red-800
+                            {% elif request.status == 'completed' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ request.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">No shopping requests found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if shopping_requests.has_other_pages %}
+    <div class="mt-6 flex justify-center">
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            {% if shopping_requests.has_previous %}
+            <a href="?page={{ shopping_requests.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                Previous
+            </a>
+            {% endif %}
+
+            {% for num in shopping_requests.paginator.page_range %}
+                {% if shopping_requests.number == num %}
+                <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                    {{ num }}
+                </a>
+                {% elif num > shopping_requests.number|add:'-3' and num < shopping_requests.number|add:'3' %}
+                <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if shopping_requests.has_next %}
+            <a href="?page={{ shopping_requests.next_page_number }}" class="relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                Next
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
