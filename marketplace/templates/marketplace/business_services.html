@@ -21,37 +21,7 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4">Quick Actions</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="{% url 'marketplace:add_service' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Add Service</h3>
-                    <p class="text-gray-600">Create a new service offering</p>
-                </a>
-                <a href="{% url 'marketplace:business_dashboard' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Back to Business Dashboard</h3>
-                    <p class="text-gray-600">Return to your business dashboard</p>
-                </a>
-                <a href="{% url 'marketplace:business_products' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">View Products</h3>
-                    <p class="text-gray-600">Manage your products</p>
-                </a>
-            </div>
-        </div>
 
-        <!-- Business Info -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4">Business Information</h2>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-xl font-semibold mb-2">{{ business.name }}</h3>
-                <p class="text-gray-600 mb-4">{{ business.description }}</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <p><strong>Email:</strong> {{ business.email }}</p>
-                    <p><strong>Phone:</strong> {{ business.phone_number }}</p>
-                    <p><strong>Address:</strong> {{ business.address }}</p>
-                </div>
-            </div>
-        </div>
 
         <!-- Services Section -->
         <div class="mb-8">
@@ -117,9 +87,5 @@
             <a href="{% url 'marketplace:business_register' %}" class="btn-primary px-6 py-2">Register Your Business</a>
         </div>
     {% endif %}
-
-    <div class="flex justify-end">
-        <a href="{% url 'marketplace:toggle_dashboard_view' %}" class="btn-primary px-6 py-2">Switch to Client Dashboard</a>
-    </div>
 </div>
 {% endblock %}
