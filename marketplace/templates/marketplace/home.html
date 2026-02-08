@@ -57,7 +57,7 @@
                     <h3 class="text-xl font-semibold mt-4">{{ product.name }}</h3>
                     <p class="text-gray-600 mt-2 truncate">{{ product.description|truncatewords:15 }}</p>
                     <div class="mt-4 flex justify-between items-center">
-                        <span class="text-lg font-bold text-blue-600">${{ product.price }}</span>
+                        <span class="text-lg font-bold text-blue-600">R{{ product.price }}</span>
                         <a href="{% url 'marketplace:product_detail' product.pk %}" class="btn-primary transform transition duration-300 hover:scale-105 hover:bg-blue-700">View Details</a>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                     <p class="text-gray-600 mt-2 truncate">{{ service.description|truncatewords:15 }}</p>
                     {% if service.price %}
                         <div class="mt-4 flex justify-between items-center">
-                            <span class="text-lg font-bold text-blue-600">${{ service.price }}</span>
+                            <span class="text-lg font-bold text-blue-600">R{{ service.price }}</span>
                         </div>
                     {% endif %}
                     <div class="mt-4">
@@ -157,7 +157,7 @@
                 <h3 class="text-xl font-semibold mt-4">{{ product.name }}</h3>
                 <p class="text-gray-600 mt-2 truncate">{{ product.description|truncatewords:10 }}</p>
                 <div class="mt-4 flex justify-between items-center">
-                    <span class="text-lg font-bold text-blue-600">${{ product.price }}</span>
+                    <span class="text-lg font-bold text-blue-600">R{{ product.price }}</span>
                     <a href="{% url 'marketplace:product_detail' product.pk %}" class="btn-primary transform transition duration-300 hover:scale-105 hover:bg-blue-700">View Details</a>
                 </div>
             </div>

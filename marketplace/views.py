@@ -155,12 +155,29 @@ def business_register(request):
 @login_required
 @business_owner_required
 def business_dashboard(request):
-    business = Business.objects.filter(owner=request.user).first()
-    products = Product.objects.filter(business=business)
-    services = Service.objects.filter(business=business)
+    # Get all businesses for the user
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+    
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            business = all_businesses.first() if all_businesses.exists() else None
+    else:
+        business = all_businesses.first() if all_businesses.exists() else None
+    
+    if business:
+        products = Product.objects.filter(business=business)
+        services = Service.objects.filter(business=business)
 
-    # Get total orders for this business
-    total_orders = Order.objects.filter(business=business).count()
+        # Get total orders for this business
+        total_orders = Order.objects.filter(business=business).count()
+    else:
+        products = []
+        services = []
+        total_orders = 0
 
     # Get shopping trips and requests for the user
     from datetime import datetime
@@ -182,10 +199,11 @@ def business_dashboard(request):
 
     context = {
         'business': business,
+        'all_businesses': all_businesses,
         'products': products,
         'services': services,
-        'total_products': products.count(),
-        'total_services': services.count(),
+        'total_products': len(products) if isinstance(products, list) else products.count(),
+        'total_services': len(services) if isinstance(services, list) else services.count(),
         'total_orders': total_orders,
         'upcoming_shopping_trips': upcoming_shopping_trips,
         'sent_shopping_requests': sent_shopping_requests,
@@ -197,16 +215,29 @@ def business_dashboard(request):
 @login_required
 @business_owner_required
 def business_products(request):
-    """Display products for the logged-in business owner"""
-    business = Business.objects.filter(owner=request.user).first()
-    if not business:
-        messages.error(request, 'You must have a registered business to view products.')
-        return redirect('marketplace:business_dashboard')
+    """Display products for the selected business of the logged-in business owner"""
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
+        if not business:
+            messages.error(request, 'You must have a registered business to view products.')
+            return redirect('marketplace:business_dashboard')
 
     products = Product.objects.filter(business=business)
 
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
     context = {
         'business': business,
+        'all_businesses': all_businesses,
         'products': products,
         'total_products': products.count(),
     }
@@ -216,20 +247,74 @@ def business_products(request):
 @login_required
 @business_owner_required
 def business_services(request):
-    """Display services for the logged-in business owner"""
-    business = Business.objects.filter(owner=request.user).first()
-    if not business:
-        messages.error(request, 'You must have a registered business to view services.')
-        return redirect('marketplace:business_dashboard')
+    """Display services for the selected business of the logged-in business owner"""
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
+        if not business:
+            messages.error(request, 'You must have a registered business to view services.')
+            return redirect('marketplace:business_dashboard')
 
     services = Service.objects.filter(business=business)
 
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
     context = {
         'business': business,
+        'all_businesses': all_businesses,
         'services': services,
         'total_services': services.count(),
     }
     return render(request, 'marketplace/business_services.html', context)
+
+
+@login_required
+@business_owner_required
+def delete_business(request, business_id):
+    """
+    Allow business owner to delete their business if it has no pending orders
+    """
+    from django.shortcuts import get_object_or_404
+    from django.db import transaction
+    
+    # Get the specific business to delete, ensuring it belongs to the current user
+    business = get_object_or_404(Business, id=business_id, owner=request.user)
+    
+    # Check if the business has any pending orders
+    pending_orders = Order.objects.filter(
+        business=business,
+        status__in=['pending', 'confirmed', 'in_progress']
+    )
+    
+    if pending_orders.exists():
+        # Cancel pending orders and notify the user
+        canceled_count = 0
+        for order in pending_orders:
+            order.status = 'cancelled'
+            order.save()
+            canceled_count += 1
+        
+        messages.warning(
+            request, 
+            f'Business cannot be deleted because it had pending orders. '
+            f'{canceled_count} order(s) have been automatically cancelled.'
+        )
+        return redirect('marketplace:business_dashboard')
+    
+    # If no pending orders, delete the business
+    business_name = business.name
+    business.delete()
+    
+    messages.success(request, f'Business "{business_name}" has been successfully deleted.')
+    return redirect('marketplace:business_dashboard')
 
 
 @login_required
@@ -914,9 +999,17 @@ def order_detail(request, pk):
 @login_required
 @business_owner_required
 def business_orders(request):
-    """Display orders for the business owner"""
-    # Get the business for the current user
-    business = Business.objects.filter(owner=request.user).first()
+    """Display orders for the selected business of the business owner"""
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
 
     if not business:
         messages.error(request, 'No business found associated with your account.')
@@ -935,15 +1028,25 @@ def business_orders(request):
 
     if date_from:
         from datetime import datetime
-        orders = orders.filter(created_at__date__gte=datetime.strptime(date_from, '%Y-%m-%d'))
+        try:
+            orders = orders.filter(created_at__date__gte=datetime.strptime(date_from, '%Y-%m-%d'))
+        except ValueError:
+            pass  # Ignore invalid date format
 
     if date_to:
         from datetime import datetime
-        orders = orders.filter(created_at__date__lte=datetime.strptime(date_to, '%Y-%m-%d'))
+        try:
+            orders = orders.filter(created_at__date__lte=datetime.strptime(date_to, '%Y-%m-%d'))
+        except ValueError:
+            pass  # Ignore invalid date format
+
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
 
     context = {
         'orders': orders,
         'business': business,
+        'all_businesses': all_businesses,
     }
     return render(request, 'marketplace/business_orders.html', context)
 
@@ -952,15 +1055,8 @@ def business_orders(request):
 @business_owner_required
 def business_order_detail(request, order_id):
     """Display detailed order information for business owner"""
-    # Get the business for the current user
-    business = Business.objects.filter(owner=request.user).first()
-
-    if not business:
-        messages.error(request, 'No business found associated with your account.')
-        return redirect('marketplace:business_dashboard')
-
-    # Get the specific order for this business
-    order = get_object_or_404(Order, id=order_id, business=business)
+    # Get the specific order for this business, ensuring it belongs to a business owned by the user
+    order = get_object_or_404(Order, id=order_id, business__owner=request.user)
     order_items = order.items.all()
 
     # Calculate tax and total
@@ -969,12 +1065,16 @@ def business_order_detail(request, order_id):
     tax = subtotal * tax_rate
     total_with_tax = subtotal + tax
 
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
     context = {
         'order': order,
         'order_items': order_items,
         'subtotal': subtotal,
         'tax': tax,
         'total_with_tax': total_with_tax,
+        'all_businesses': all_businesses,
     }
     return render(request, 'marketplace/business_order_detail.html', context)
 
@@ -986,15 +1086,8 @@ def update_order_status(request, order_id):
     if request.method != 'POST':
         return redirect('marketplace:business_orders')
 
-    # Get the business for the current user
-    business = Business.objects.filter(owner=request.user).first()
-
-    if not business:
-        messages.error(request, 'No business found associated with your account.')
-        return redirect('marketplace:business_dashboard')
-
-    # Get the specific order for this business
-    order = get_object_or_404(Order, id=order_id, business=business)
+    # Get the specific order for this business, ensuring it belongs to a business owned by the user
+    order = get_object_or_404(Order, id=order_id, business__owner=request.user)
 
     action = request.POST.get('action')
 
@@ -1744,11 +1837,11 @@ def client_dashboard(request):
     # Check if CartItem model exists
     cart_items = []
     try:
-        from .models import CartItem  # Try to import CartItem
-        # If CartItem exists, get the user's cart items
+        from .models import CartItem, Cart  # Try to import CartItem and Cart
+        # If Cart and CartItem exist, get the user's cart items
         cart_items = CartItem.objects.filter(cart__customer=request.user).select_related('product')
     except ImportError:
-        # If CartItem doesn't exist, cart_items remains empty
+        # If Cart or CartItem doesn't exist, cart_items remains empty
         pass
 
     # Get user's product requests
@@ -1816,11 +1909,20 @@ def client_dashboard(request):
 @login_required
 @business_owner_required
 def add_product(request):
-    """Add a new product to the business"""
-    business = Business.objects.filter(owner=request.user).first()
-    if not business:
-        messages.error(request, 'You must have a registered business to add products.')
-        return redirect('marketplace:business_dashboard')
+    """Add a new product to the selected business"""
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
+        if not business:
+            messages.error(request, 'You must have a registered business to add products.')
+            return redirect('marketplace:business_dashboard')
 
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
@@ -1829,21 +1931,37 @@ def add_product(request):
             product.business = business
             product.save()
             messages.success(request, 'Product added successfully!')
-            return redirect('marketplace:business_dashboard')
+            return redirect(f'{request.path}?business_id={business.id}')
     else:
         form = ProductForm()
 
-    return render(request, 'marketplace/add_product.html', {'form': form})
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
+    return render(request, 'marketplace/add_product.html', {
+        'form': form,
+        'business': business,
+        'all_businesses': all_businesses
+    })
 
 
 @login_required
 @business_owner_required
 def add_service(request):
-    """Add a new service to the business"""
-    business = Business.objects.filter(owner=request.user).first()
-    if not business:
-        messages.error(request, 'You must have a registered business to add services.')
-        return redirect('marketplace:business_dashboard')
+    """Add a new service to the selected business"""
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
+        if not business:
+            messages.error(request, 'You must have a registered business to add services.')
+            return redirect('marketplace:business_dashboard')
 
     if request.method == 'POST':
         form = ServiceForm(request.POST, request.FILES)
@@ -1852,21 +1970,37 @@ def add_service(request):
             service.business = business
             service.save()
             messages.success(request, 'Service added successfully!')
-            return redirect('marketplace:business_dashboard')
+            return redirect(f'{request.path}?business_id={business.id}')
     else:
         form = ServiceForm()
 
-    return render(request, 'marketplace/add_service.html', {'form': form})
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
+    return render(request, 'marketplace/add_service.html', {
+        'form': form,
+        'business': business,
+        'all_businesses': all_businesses
+    })
 
 
 @login_required
 @business_owner_required
 def view_reviews(request):
-    """View reviews for the business's products and services"""
-    business = Business.objects.filter(owner=request.user).first()
-    if not business:
-        messages.error(request, 'You must have a registered business to view reviews.')
-        return redirect('marketplace:business_dashboard')
+    """View reviews for the selected business's products and services"""
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
+        if not business:
+            messages.error(request, 'You must have a registered business to view reviews.')
+            return redirect('marketplace:business_dashboard')
 
     # Get reviews for all products and services of this business
     product_reviews = Review.objects.filter(product__business=business).select_related('reviewer', 'product')
@@ -1878,8 +2012,12 @@ def view_reviews(request):
         key=lambda x: x.created_at, reverse=True
     )
 
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
     context = {
         'business': business,
+        'all_businesses': all_businesses,
         'reviews': all_reviews,
         'product_reviews': product_reviews,
         'service_reviews': service_reviews,
@@ -1903,11 +2041,19 @@ def edit_product(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Product updated successfully!')
-            return redirect('marketplace:business_dashboard')
+            return redirect(f'{request.META.get("HTTP_REFERER", "marketplace:business_dashboard")}?business_id={product.business.id}')
     else:
         form = ProductForm(instance=product)
 
-    return render(request, 'marketplace/edit_product.html', {'form': form, 'product': product})
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
+    return render(request, 'marketplace/edit_product.html', {
+        'form': form, 
+        'product': product,
+        'business': product.business,
+        'all_businesses': all_businesses
+    })
 
 
 @login_required
@@ -1922,12 +2068,20 @@ def delete_product(request, pk):
         return redirect('marketplace:business_dashboard')
 
     if request.method == 'POST':
+        business_id = product.business.id
         product_name = product.name
         product.delete()
         messages.success(request, f'Product "{product_name}" deleted successfully!')
-        return redirect('marketplace:business_dashboard')
+        return redirect(f'{request.META.get("HTTP_REFERER", "marketplace:business_dashboard")}?business_id={business_id}')
 
-    return render(request, 'marketplace/delete_product.html', {'product': product})
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
+    return render(request, 'marketplace/delete_product.html', {
+        'product': product,
+        'business': product.business,
+        'all_businesses': all_businesses
+    })
 
 
 @login_required
@@ -1946,11 +2100,19 @@ def edit_service(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Service updated successfully!')
-            return redirect('marketplace:business_dashboard')
+            return redirect(f'{request.META.get("HTTP_REFERER", "marketplace:business_dashboard")}?business_id={service.business.id}')
     else:
         form = ServiceForm(instance=service)
 
-    return render(request, 'marketplace/edit_service.html', {'form': form, 'service': service})
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
+    return render(request, 'marketplace/edit_service.html', {
+        'form': form, 
+        'service': service,
+        'business': service.business,
+        'all_businesses': all_businesses
+    })
 
 
 @login_required
@@ -1965,12 +2127,20 @@ def delete_service(request, pk):
         return redirect('marketplace:business_dashboard')
 
     if request.method == 'POST':
+        business_id = service.business.id
         service_name = service.name
         service.delete()
         messages.success(request, f'Service "{service_name}" deleted successfully!')
-        return redirect('marketplace:business_dashboard')
+        return redirect(f'{request.META.get("HTTP_REFERER", "marketplace:business_dashboard")}?business_id={business_id}')
 
-    return render(request, 'marketplace/delete_service.html', {'service': service})
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
+    return render(request, 'marketplace/delete_service.html', {
+        'service': service,
+        'business': service.business,
+        'all_businesses': all_businesses
+    })
 
 
 @login_required
@@ -2082,7 +2252,16 @@ def admin_manage_shopping_requests(request):
 @business_owner_required
 def my_business(request):
     """Display business owner's business profile and information"""
-    business = Business.objects.filter(owner=request.user).first()
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
 
     if not business:
         messages.error(request, 'You must have a registered business to view business details.')
@@ -2096,11 +2275,130 @@ def my_business(request):
     # Get recent reviews for the business
     recent_reviews = business.reviews.select_related('reviewer').order_by('-created_at')[:5]
 
+    # Get all businesses for the user to allow switching
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+
     context = {
         'business': business,
+        'all_businesses': all_businesses,
         'total_products': total_products,
         'total_services': total_services,
         'total_orders': total_orders,
         'recent_reviews': recent_reviews,
     }
     return render(request, 'marketplace/my_business.html', context)
+
+
+def password_reset_request(request):
+    """
+    Display the password reset form and handle form submission.
+    """
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        # Find user by email
+        user = User.objects.filter(email=email).first()
+        
+        if user:
+            # Use Django's built-in password reset functionality
+            from django.contrib.auth.tokens import default_token_generator
+            from django.utils.http import urlsafe_base64_encode
+            from django.utils.encoding import force_bytes
+            from django.template.loader import render_to_string
+            from django.core.mail import send_mail
+            from django.contrib.sites.shortcuts import get_current_site
+            from django.conf import settings
+            
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            
+            # Create password reset link
+            current_site = get_current_site(request)
+            reset_url = f"http://{current_site.domain}/password-reset-confirm/{uid}/{token}/"
+            
+            # Prepare email content
+            subject = 'Password Reset Request'
+            message = render_to_string('marketplace/password_reset_email.html', {
+                'user': user,
+                'reset_url': reset_url,
+                'site_name': 'Madidi Market',
+            })
+            
+            # Try to send email
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@madidimarket.com'),
+                    [user.email],
+                    fail_silently=False,
+                )
+                # Log successful email sending
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Password reset email sent successfully to {user.email}")
+            except Exception as e:
+                # Log the error
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Could not send password reset email to {user.email}: {str(e)}")
+                # In production, you might want to notify admins of email failures
+                # For now, we'll continue as if the email was sent for security reasons
+
+            return redirect('marketplace:password_reset_done')
+        else:
+            # Even if email doesn't exist, show the same message for security
+            return redirect('marketplace:password_reset_done')
+    
+    return render(request, 'marketplace/password_reset.html')
+
+
+def password_reset_done(request):
+    """
+    Display a success message after password reset email has been sent.
+    """
+    return render(request, 'marketplace/password_reset_done.html')
+
+
+def password_reset_confirm(request, uidb64, token):
+    """
+    Display the password reset form for entering a new password.
+    """
+    try:
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_decode
+        from django.utils.encoding import force_str
+        from django.contrib.auth import get_user_model
+        
+        User = get_user_model()
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password1 = request.POST.get('new_password1')
+            password2 = request.POST.get('new_password2')
+            
+            if password1 and password2 and password1 == password2:
+                user.set_password(password1)
+                user.save()
+                from django.contrib import messages
+                messages.success(request, 'Your password has been reset successfully. You can now log in with your new password.')
+                return redirect('marketplace:password_reset_complete')
+            else:
+                # Passwords don't match or are empty
+                from django.contrib import messages
+                messages.error(request, 'Passwords do not match or are empty.')
+        return render(request, 'marketplace/password_reset_confirm.html', {'valid_token': True})
+    else:
+        # Invalid token
+        return render(request, 'marketplace/password_reset_confirm.html', {'valid_token': False})
+
+
+def password_reset_complete(request):
+    """
+    Display a success message after password has been reset.
+    """
+    return render(request, 'marketplace/password_reset_complete.html')

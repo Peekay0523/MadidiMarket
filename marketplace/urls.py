@@ -21,6 +21,7 @@ urlpatterns = [
     path('business/dashboard/', views.business_dashboard, name='business_dashboard'),
     path('business/<int:pk>/', views.business_detail, name='business_detail'),
     path('businesses/', views.business_list, name='business_list'),
+    path('business/<int:business_id>/delete/', views.delete_business, name='delete_business'),
     
     # Product and service listings
     path('products/', views.product_list, name='product_list'),
@@ -93,4 +94,10 @@ urlpatterns = [
     path('create-shopping-trip/', views.create_shopping_trip, name='create_shopping_trip'),
     path('make-shopping-request/<int:trip_id>/', views.make_shopping_request, name='make_shopping_request'),
     path('my-shopping-requests/', views.my_shopping_requests, name='my_shopping_requests'),
+
+    # Password reset functionality
+    path('password-reset/', views.password_reset_request, name='password_reset'),
+    path('password-reset/done/', views.password_reset_done, name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('password-reset-complete/', views.password_reset_complete, name='password_reset_complete'),
 ]

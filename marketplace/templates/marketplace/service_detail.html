@@ -37,7 +37,7 @@
             
             <div class="mb-6">
                 {% if service.price %}
-                    <p class="text-2xl font-bold text-blue-600">${{ service.price }}</p>
+                    <p class="text-2xl font-bold text-blue-600">R{{ service.price }}</p>
                 {% else %}
                     <p class="text-2xl font-bold text-blue-600">Price on Request</p>
                 {% endif %}
@@ -145,7 +145,7 @@
                     <h3 class="text-lg font-semibold mt-2">{{ related_service.name }}</h3>
                     <div class="mt-2 flex justify-between items-center">
                         {% if related_service.price %}
-                            <span class="font-bold text-blue-600">${{ related_service.price }}</span>
+                            <span class="font-bold text-blue-600">R{{ related_service.price }}</span>
                         {% else %}
                             <span class="font-bold text-blue-600">On Request</span>
                         {% endif %}

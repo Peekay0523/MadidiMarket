@@ -15,7 +15,7 @@
                 <h3 class="font-bold text-lg">{{ service.name }}</h3>
                 <p class="text-gray-700">{{ service.description|truncatewords:20 }}</p>
                 {% if service.price %}
-                    <p class="text-gray-600 mt-2">${{ service.price }} | {{ service.duration|default:"Duration varies" }}</p>
+                    <p class="text-gray-600 mt-2">R{{ service.price }} | {{ service.duration|default:"Duration varies" }}</p>
                 {% else %}
                     <p class="text-gray-600 mt-2">Price varies | {{ service.duration|default:"Duration varies" }}</p>
                 {% endif %}

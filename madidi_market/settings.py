@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
+    'django.contrib.sites',
     'marketplace',
     'corsheaders',
     'widget_tweaks',
@@ -152,5 +155,16 @@ CSRF_TRUSTED_ORIGINS = [
     "https://nonenticingly-unicolor-anson.ngrok-free.dev",
 ]
 
+SITE_ID = 1
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email settings for development
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'pontshokganakga863@gmail.com'
+EMAIL_HOST_PASSWORD = config('GMAIL_APP_PASSWORD')  # Use environment variable for security
+DEFAULT_FROM_EMAIL = 'pontshokganakga863@gmail.com'

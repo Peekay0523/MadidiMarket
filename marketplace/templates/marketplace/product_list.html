@@ -47,7 +47,7 @@
                         <h3 class="text-xl font-semibold mt-4">{{ product.name }}</h3>
                         <p class="text-gray-600 mt-2">{{ product.description|truncatewords:15 }}</p>
                         <div class="mt-4 flex justify-between items-center">
-                            <span class="text-lg font-bold text-blue-600">${{ product.price }}</span>
+                            <span class="text-lg font-bold text-blue-600">R{{ product.price }}</span>
                             <span class="text-sm text-gray-500">Stock: {{ product.stock_quantity }}</span>
                         </div>
                         <div class="mt-4 flex justify-between">
