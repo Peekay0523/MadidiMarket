@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Avg
 from django.http import JsonResponse
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import *
 from .models import ShoppingTrip, ShoppingRequest  # Import the new models
 from .forms import *
@@ -63,10 +65,22 @@ def register(request):
             user = form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}!')
-            return redirect('marketplace:login')
+            
+            # Check if there's a 'next' parameter in the URL
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(f"{reverse('marketplace:login')}?next={next_url}")
+            else:
+                return redirect('marketplace:login')
     else:
         form = UserRegistrationForm()
-    return render(request, 'marketplace/register.html', {'form': form})
+        
+        # Pass the next parameter to the template context if it exists
+        next_url = request.GET.get('next')
+        context = {'form': form}
+        if next_url:
+            context['next'] = next_url
+        return render(request, 'marketplace/register.html', context)
 
 
 def login_view(request):
@@ -76,7 +90,18 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # Redirect based on user type
+            
+            # Check if there's a 'next' parameter in the URL
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                # Ensure the next URL is safe to prevent open redirect vulnerabilities
+                if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                    return redirect(next_url)
+                else:
+                    # If the next URL is not safe, redirect to home
+                    return redirect('marketplace:home')
+            
+            # If no 'next' parameter, redirect based on user type
             if user.is_staff or (hasattr(user, 'userprofile') and user.userprofile.user_type == 'admin'):
                 return redirect('marketplace:admin_dashboard')
             elif hasattr(user, 'userprofile') and user.userprofile.user_type == 'business_owner':
@@ -113,13 +138,43 @@ def admin_approve_business(request):
 
         try:
             profile = UserProfile.objects.get(id=user_id)
+            user = profile.user
+            
             if action == 'approve':
                 profile.is_approved = True
                 profile.save()
-                messages.success(request, f'Approved business owner: {profile.user.username}')
+                
+                # Send approval notification email
+                from django.core.mail import send_mail
+                from django.template.loader import render_to_string
+                from django.conf import settings
+                
+                subject = 'Your Business Registration Has Been Approved'
+                
+                # Render email content from template
+                email_content = render_to_string('marketplace/emails/business_approved_email.html', {
+                    'user': user,
+                    'business_name': user.businesses.first().name if user.businesses.first() else 'your business',
+                    'site_name': 'Madidi Market',
+                })
+                
+                try:
+                    send_mail(
+                        subject,
+                        '',  # Plain text version (empty since we're using HTML)
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        html_message=email_content,
+                        fail_silently=False,
+                    )
+                    messages.success(request, f'Approved business owner: {user.username}. Notification email sent.')
+                except Exception as e:
+                    # If email fails, still approve the business but log the error
+                    messages.warning(request, f'Approved business owner: {user.username}, but failed to send notification email: {str(e)}')
+                    
             elif action == 'reject':
                 # For rejection, we could delete the business or just keep is_approved=False
-                messages.info(request, f'Rejected business owner: {profile.user.username}')
+                messages.info(request, f'Rejected business owner: {user.username}')
         except UserProfile.DoesNotExist:
             messages.error(request, 'User not found.')
 
@@ -132,19 +187,26 @@ def admin_approve_business(request):
 
 
 def business_register(request):
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        messages.info(request, 'You need to register or log in first before registering a business.')
+        # Redirect to register page with a parameter to redirect to business registration after login
+        next_url = request.build_absolute_uri(request.path)
+        return redirect(f"{reverse('marketplace:register')}?next={next_url}")
+
     if request.method == 'POST':
         form = BusinessOwnerRegistrationForm(request.POST)
         if form.is_valid():
             business = form.save(commit=False)
             business.owner = request.user
             business.save()
-            
+
             # Update user profile to business owner
             user_profile = UserProfile.objects.get(user=request.user)
             user_profile.user_type = 'business_owner'
             user_profile.is_approved = False  # Needs admin approval
             user_profile.save()
-            
+
             messages.success(request, 'Business registered successfully! Awaiting admin approval.')
             return redirect('marketplace:home')
     else:
@@ -174,10 +236,25 @@ def business_dashboard(request):
 
         # Get total orders for this business
         total_orders = Order.objects.filter(business=business).count()
+        
+        # Calculate total revenue from completed orders for this business
+        completed_orders = Order.objects.filter(
+            business=business,
+            status__in=['completed', 'delivered']  # Assuming these statuses mean the order is finalized
+        )
+        
+        total_revenue = 0
+        for order in completed_orders:
+            total_revenue += float(order.total_amount)
+        
+        # Calculate admin's payment (5% of total revenue)
+        admin_payment = total_revenue * 0.05
     else:
         products = []
         services = []
         total_orders = 0
+        total_revenue = 0
+        admin_payment = 0
 
     # Get shopping trips and requests for the user
     from datetime import datetime
@@ -205,6 +282,8 @@ def business_dashboard(request):
         'total_products': len(products) if isinstance(products, list) else products.count(),
         'total_services': len(services) if isinstance(services, list) else services.count(),
         'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'admin_payment': admin_payment,
         'upcoming_shopping_trips': upcoming_shopping_trips,
         'sent_shopping_requests': sent_shopping_requests,
         'received_shopping_requests': received_shopping_requests,
@@ -1232,6 +1311,18 @@ def admin_dashboard(request):
     total_services = Service.objects.count()
     total_orders = Order.objects.count()
 
+    # Calculate total revenue and admin's payment from all businesses
+    completed_orders = Order.objects.filter(
+        status__in=['completed', 'delivered']  # Assuming these statuses mean the order is finalized
+    )
+    
+    total_revenue = 0
+    for order in completed_orders:
+        total_revenue += float(order.total_amount)
+    
+    # Calculate admin's payment (5% of total revenue)
+    admin_payment = total_revenue * 0.05
+
     # Get shopping trips and requests statistics for admin
     total_shopping_trips = ShoppingTrip.objects.count()
     active_shopping_trips = ShoppingTrip.objects.filter(status='available').count()
@@ -1251,6 +1342,8 @@ def admin_dashboard(request):
         'total_products': total_products,
         'total_services': total_services,
         'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'admin_payment': admin_payment,
         'total_shopping_trips': total_shopping_trips,
         'active_shopping_trips': active_shopping_trips,
         'total_shopping_requests': total_shopping_requests,
@@ -1259,6 +1352,115 @@ def admin_dashboard(request):
         'recent_shopping_requests': recent_shopping_requests,
     }
     return render(request, 'marketplace/admin/dashboard.html', context)
+
+
+@login_required
+def admin_business_revenue(request):
+    """Display business revenue details for admin"""
+    if not request.user.is_staff and request.user.userprofile.user_type != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('marketplace:home')
+
+    # Handle form submission to update paid status
+    if request.method == 'POST':
+        business_id = request.POST.get('business_id')
+        paid_status = request.POST.get('paid_status')
+        
+        try:
+            from datetime import datetime
+            business = Business.objects.get(id=business_id)
+            
+            # Get the latest admin fee payment record for this business
+            # In a real scenario, you might want to create records for specific periods
+            # For now, we'll create or update a record for the current period
+            from django.utils import timezone
+            now = timezone.now()
+            
+            # Get the latest payment record or create a new one
+            payment_record, created = BusinessAdminFeePayment.objects.get_or_create(
+                business=business,
+                period_start__year=now.year,
+                period_end__year=now.year,
+                defaults={
+                    'period_start': now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0),
+                    'period_end': now.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999),
+                    'total_revenue': Decimal('0'),
+                    'admin_fee_amount': Decimal('0'),
+                    'is_paid': paid_status == 'paid'
+                }
+            )
+            
+            # Update the payment status
+            payment_record.is_paid = paid_status == 'paid'
+            if paid_status == 'paid':
+                payment_record.paid_date = now
+            else:
+                payment_record.paid_date = None
+            payment_record.save()
+            
+            if paid_status == 'paid':
+                messages.success(request, f'Marked business "{business.name}" as paid.')
+            else:
+                messages.info(request, f'Marked business "{business.name}" as not paid.')
+        except Business.DoesNotExist:
+            messages.error(request, 'Business not found.')
+        
+        return redirect('marketplace:admin_business_revenue')
+
+    # Get all businesses with their revenue
+    from django.db.models import Sum, F
+    from django.db import models
+    from django.utils import timezone
+    
+    now = timezone.now()
+    businesses_with_revenue = Business.objects.annotate(
+        total_revenue=Sum(
+            'orders__total_amount',
+            filter=models.Q(orders__status__in=['completed', 'delivered'])
+        )
+    ).annotate(
+        admin_fee=F('total_revenue') * Decimal('0.05'),  # 5% admin fee - using Decimal
+        completed_orders_count=Sum(
+            'orders__id',
+            filter=models.Q(orders__status__in=['completed', 'delivered']),
+            distinct=True
+        )
+    ).exclude(total_revenue=None).order_by('-total_revenue')
+
+    # Add payment status to each business
+    for business in businesses_with_revenue:
+        # Get the payment record for the current year
+        payment_record, created = BusinessAdminFeePayment.objects.get_or_create(
+            business=business,
+            period_start__year=now.year,
+            period_end__year=now.year,
+            defaults={
+                'period_start': now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0),
+                'period_end': now.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999),
+                'total_revenue': business.total_revenue or Decimal('0'),
+                'admin_fee_amount': (business.total_revenue or Decimal('0')) * Decimal('0.05'),
+                'is_paid': False
+            }
+        )
+        # Update the payment record with current values if they've changed
+        if not created:
+            payment_record.total_revenue = business.total_revenue or Decimal('0')
+            payment_record.admin_fee_amount = (business.total_revenue or Decimal('0')) * Decimal('0.05')
+            payment_record.save()
+        
+        business.payment_status = payment_record.is_paid
+        business.payment_record_id = payment_record.id
+
+    # Calculate overall totals
+    overall_total_revenue = sum(business.total_revenue or Decimal('0') for business in businesses_with_revenue)
+    overall_admin_fee = overall_total_revenue * Decimal('0.05')
+
+    context = {
+        'businesses_with_revenue': businesses_with_revenue,
+        'overall_total_revenue': overall_total_revenue,
+        'overall_admin_fee': overall_admin_fee,
+    }
+    return render(request, 'marketplace/admin/business_revenue.html', context)
 
 
 @login_required
@@ -2287,6 +2489,57 @@ def my_business(request):
         'recent_reviews': recent_reviews,
     }
     return render(request, 'marketplace/my_business.html', context)
+
+
+@login_required
+@business_owner_required
+def delete_my_business(request):
+    """Allow business owner to delete their business from the my_business page"""
+    if request.method != 'POST':
+        return redirect('marketplace:my_business')
+    
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
+
+    if not business:
+        messages.error(request, 'No business found to delete.')
+        return redirect('marketplace:business_register')
+
+    # Check if the business has any pending orders
+    pending_orders = Order.objects.filter(
+        business=business,
+        status__in=['pending', 'confirmed', 'in_progress']
+    )
+
+    if pending_orders.exists():
+        # Cancel pending orders and notify the user
+        canceled_count = 0
+        for order in pending_orders:
+            order.status = 'cancelled'
+            order.save()
+            canceled_count += 1
+
+        messages.warning(
+            request,
+            f'Business cannot be deleted because it had pending orders. '
+            f'{canceled_count} order(s) have been automatically cancelled.'
+        )
+        return redirect('marketplace:my_business')
+
+    # If no pending orders, delete the business
+    business_name = business.name
+    business.delete()
+
+    messages.success(request, f'Business "{business_name}" has been successfully deleted.')
+    return redirect('marketplace:business_register')
 
 
 def password_reset_request(request):

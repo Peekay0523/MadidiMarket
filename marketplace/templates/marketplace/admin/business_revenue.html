@@ -1,0 +1,87 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Business Revenue - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <h1 class="text-3xl font-bold mb-8">Business Revenue</h1>
+
+    <!-- Overall Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-blue-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-blue-800">Overall Total Revenue</h3>
+            <p class="text-3xl font-bold text-blue-600">R{{ overall_total_revenue|floatformat:2 }}</p>
+        </div>
+        <div class="bg-green-100 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-green-800">Overall Admin Fee (5%)</h3>
+            <p class="text-3xl font-bold text-green-600">R{{ overall_admin_fee|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <!-- Business Revenue Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Revenue</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin Fee (5%)</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for business in businesses_with_revenue %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ business.name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ business.owner.username }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">R{{ business.total_revenue|floatformat:2 }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">R{{ business.admin_fee|floatformat:2 }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">
+                                {{ business.completed_orders_count|default:0 }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if business.payment_status %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {% if business.payment_status %}Paid{% else %}Not Paid{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <form method="post" class="inline-block" action="{% url 'marketplace:admin_business_revenue' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="business_id" value="{{ business.id }}">
+                                <input type="hidden" name="paid_status" value="{% if business.payment_status %}not_paid{% else %}paid{% endif %}">
+                                <button type="submit" class="px-3 py-1 rounded-md text-white text-sm
+                                    {% if business.payment_status %}bg-red-600 hover:bg-red-700{% else %}bg-green-600 hover:bg-green-700{% endif %}">
+                                    {% if business.payment_status %}Mark as Not Paid{% else %}Mark as Paid{% endif %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            No businesses with revenue found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

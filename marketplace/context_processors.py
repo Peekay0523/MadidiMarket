@@ -38,3 +38,25 @@ def review_context(request):
     return {
         'recent_reviews': recent_reviews,
     }
+
+
+def admin_notification_context(request):
+    """
+    Context processor to add admin notifications to all templates
+    """
+    if request.user.is_authenticated and (request.user.is_staff or hasattr(request.user, 'userprofile') and request.user.userprofile.user_type == 'admin'):
+        from .models import UserProfile
+        
+        # Count pending business approvals
+        pending_approvals = UserProfile.objects.filter(
+            user_type='business_owner',
+            is_approved=False
+        ).count()
+        
+        return {
+            'pending_approvals_count': pending_approvals,
+        }
+    else:
+        return {
+            'pending_approvals_count': 0,
+        }

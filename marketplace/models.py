@@ -38,6 +38,22 @@ class Business(models.Model):
         return self.name
 
 
+class BusinessAdminFeePayment(models.Model):
+    """Model to track admin fee payments for businesses"""
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='admin_fee_payments')
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+    total_revenue = models.DecimalField(max_digits=10, decimal_places=2)
+    admin_fee_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    is_paid = models.BooleanField(default=False)
+    paid_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.business.name} - Admin Fee ({self.period_start.strftime('%Y-%m-%d')} to {self.period_end.strftime('%Y-%m-%d')})"
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)

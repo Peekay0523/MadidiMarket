@@ -46,6 +46,14 @@
         </a>
     </div>
 
+    <!-- Business Revenue Card -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <a href="{% url 'marketplace:admin_business_revenue' %}" class="bg-amber-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-amber-800">Business Revenue</h3>
+            <p class="text-3xl font-bold text-amber-600">5%</p>
+        </a>
+    </div>
+
     <!-- Shopping Trips & Requests Stats -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <a href="{% url 'marketplace:admin_manage_shopping_trips' %}" class="bg-orange-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
@@ -64,6 +72,23 @@
             <h3 class="text-lg font-semibold text-cyan-900">Pending Requests</h3>
             <p class="text-3xl font-bold text-cyan-700">{{ pending_shopping_requests }}</p>
         </a>
+    </div>
+
+    <!-- Admin Payment Section -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Platform Revenue</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Revenue</h3>
+                <p class="text-2xl font-bold text-gray-900">R{{ total_revenue|floatformat:2 }}</p>
+                <p class="text-sm text-gray-600 mt-2">Total revenue from completed orders</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Admin Earnings (5%)</h3>
+                <p class="text-2xl font-bold text-green-600">R{{ admin_payment|floatformat:2 }}</p>
+                <p class="text-sm text-gray-600 mt-2">5% platform fee from total revenue</p>
+            </div>
+        </div>
     </div>
 
     <!-- Quick Actions -->

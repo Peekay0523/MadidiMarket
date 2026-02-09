@@ -53,6 +53,7 @@ urlpatterns = [
     path('business/products/', views.business_products, name='business_products'),
     path('business/services/', views.business_services, name='business_services'),
     path('business/my-business/', views.my_business, name='my_business'),
+    path('business/my-business/delete/', views.delete_my_business, name='delete_my_business'),
     path('business/add-product/', views.add_product, name='add_product'),
     path('business/add-service/', views.add_service, name='add_service'),
     path('business/view-reviews/', views.view_reviews, name='view_reviews'),
@@ -70,6 +71,7 @@ urlpatterns = [
     path('admin-panel/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin-panel/users/', views.admin_manage_users, name='admin_manage_users'),
     path('admin-panel/businesses/', views.admin_manage_businesses, name='admin_manage_businesses'),
+    path('admin-panel/business-revenue/', views.admin_business_revenue, name='admin_business_revenue'),
 
     # Business owner order management
     path('business/orders/', views.business_orders, name='business_orders'),

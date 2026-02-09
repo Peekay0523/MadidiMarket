@@ -15,8 +15,12 @@
                     <h2 class="text-2xl font-bold">{{ business.name }}</h2>
                     <p class="text-gray-600 mt-2">{{ business.description }}</p>
                 </div>
-                <div class="mt-4 md:mt-0">
+                <div class="mt-4 md:mt-0 flex space-x-2">
                     <a href="{% url 'marketplace:business_dashboard' %}" class="btn-primary px-4 py-2">Manage Business</a>
+                    <form method="post" action="{% url 'marketplace:delete_my_business' %}{% if request.GET.business_id %}?business_id={{ request.GET.business_id }}{% endif %}" onsubmit="return confirm('Are you sure you want to delete your business? This action cannot be undone and will remove all products and services associated with this business.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-secondary px-4 py-2 bg-red-600 hover:bg-red-700 text-white">Delete Business</button>
+                    </form>
                 </div>
             </div>
             

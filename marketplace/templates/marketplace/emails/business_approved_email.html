@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Your Business Registration Has Been Approved</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #ffffff; max-width: 600px; margin: 0 auto;">
+        <tr>
+            <td style="padding: 20px;">
+                <h2 style="color: #333;">Congratulations!</h2>
+                
+                <p>Hello {{ user.first_name|default:user.username }},</p>
+                
+                <p>We're excited to inform you that your business registration for <strong>{{ business_name }}</strong> has been approved!</p>
+                
+                <p>You can now access all business owner features on Madidi Market, including:</p>
+                <ul>
+                    <li>Managing your business profile</li>
+                    <li>Adding and managing products and services</li>
+                    <li>Viewing and managing orders</li>
+                    <li>Tracking your business performance</li>
+                </ul>
+                
+                <p>Log in to your account to get started:</p>
+                <p><a href="http://127.0.0.1:8000/login/" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Log In to Your Account</a></p>
+                
+                <p>If you have any questions or need assistance, feel free to contact our support team.</p>
+                
+                <p>Best regards,<br>
+                The Madidi Market Team</p>
+                
+                <hr style="margin-top: 20px; border: none; border-top: 1px solid #eee;">
+                <p style="font-size: 12px; color: #777;">This email was sent to {{ user.email }} because you registered a business on Madidi Market.</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

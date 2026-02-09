@@ -28,6 +28,23 @@
             </div>
         </div>
 
+        <!-- Admin Payment Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Platform Fees</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Revenue</h3>
+                    <p class="text-2xl font-bold text-gray-900">R{{ total_revenue|floatformat:2 }}</p>
+                    <p class="text-sm text-gray-600 mt-2">Total revenue from completed orders</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow border-l-4 border-red-500">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Admin Fee (5%)</h3>
+                    <p class="text-2xl font-bold text-red-600">R{{ admin_payment|floatformat:2 }}</p>
+                    <p class="text-sm text-gray-600 mt-2">5% platform fee on total revenue</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="mb-8">
             <h2 class="text-2xl font-semibold mb-4">Quick Actions</h2>
