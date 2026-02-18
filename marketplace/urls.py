@@ -20,6 +20,7 @@ urlpatterns = [
     path('business/register/', views.business_register, name='business_register'),
     path('business/dashboard/', views.business_dashboard, name='business_dashboard'),
     path('business/<int:pk>/', views.business_detail, name='business_detail'),
+    path('business/<int:business_id>/map/', views.business_map, name='business_map'),
     path('businesses/', views.business_list, name='business_list'),
     path('business/<int:business_id>/delete/', views.delete_business, name='delete_business'),
     

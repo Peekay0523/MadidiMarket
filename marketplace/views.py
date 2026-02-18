@@ -64,17 +64,24 @@ def register(request):
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
+            user_type = form.cleaned_data.get('user_type')
             messages.success(request, f'Account created for {username}!')
-            
-            # Check if there's a 'next' parameter in the URL
-            next_url = request.POST.get('next') or request.GET.get('next')
-            if next_url:
-                return redirect(f"{reverse('marketplace:login')}?next={next_url}")
+
+            # If user registered as business_owner, redirect to business registration
+            if user_type == 'business_owner':
+                return redirect('marketplace:business_register')
             else:
+                # For clients, redirect to login
                 return redirect('marketplace:login')
+        else:
+            # Form is invalid, show errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+            return render(request, 'marketplace/register.html', {'form': form})
     else:
         form = UserRegistrationForm()
-        
+
         # Pass the next parameter to the template context if it exists
         next_url = request.GET.get('next')
         context = {'form': form}
@@ -1620,6 +1627,23 @@ def business_list(request):
         'businesses': businesses,
     }
     return render(request, 'marketplace/business_list.html', context)
+
+
+def business_map(request, business_id):
+    """Display business location on a map"""
+    business = get_object_or_404(Business, id=business_id)
+    
+    # Default to Namibia coordinates if no location set
+    default_lat = -22.957689  # Windhoek, Namibia
+    default_lng = 18.490417
+    
+    context = {
+        'business': business,
+        'latitude': float(business.latitude) if business.latitude else default_lat,
+        'longitude': float(business.longitude) if business.longitude else default_lng,
+        'has_location': bool(business.latitude and business.longitude),
+    }
+    return render(request, 'marketplace/business_map.html', context)
 
 
 def business_detail(request, pk):

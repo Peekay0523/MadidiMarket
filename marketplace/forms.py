@@ -36,11 +36,26 @@ class UserRegistrationForm(UserCreationForm):
 
 
 class BusinessOwnerRegistrationForm(forms.ModelForm):
+    latitude = forms.DecimalField(
+        max_digits=9, 
+        decimal_places=6, 
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    longitude = forms.DecimalField(
+        max_digits=9, 
+        decimal_places=6, 
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    
     class Meta:
         model = Business
-        fields = ['name', 'description', 'address', 'phone_number', 'email']
+        fields = ['name', 'description', 'address', 'phone_number', 'email', 'latitude', 'longitude']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
         }
 
 

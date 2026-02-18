@@ -36,9 +36,20 @@
 
                 <p class="text-gray-600 mb-4">{{ business.description|truncatewords:20 }}</p>
 
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center mb-3">
                     <span class="text-sm text-gray-500">{{ business.address|truncatechars:30 }}</span>
-                    <a href="{% url 'marketplace:business_detail' business.id %}" class="btn-primary">View Details</a>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{% url 'marketplace:business_map' business.id %}" 
+                       class="flex-1 text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>View Location</span>
+                    </a>
+                    <a href="{% url 'marketplace:business_detail' business.id %}" 
+                       class="flex-1 btn-primary text-center">
+                        View Details
+                    </a>
                 </div>
             </div>
             {% endfor %}

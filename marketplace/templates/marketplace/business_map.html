@@ -1,0 +1,146 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}{{ business.name }} - Location - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Back button -->
+    <div class="mb-6">
+        <a href="{% url 'marketplace:business_list' %}" class="text-blue-600 hover:text-blue-800 flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Businesses</span>
+        </a>
+    </div>
+
+    <!-- Business Info Card -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-start gap-4">
+            {% if business.logo %}
+                <img src="{{ business.logo.url }}" alt="{{ business.name }}" class="w-20 h-20 object-contain rounded-lg">
+            {% else %}
+                <div class="bg-gray-200 border-2 border-dashed rounded-md w-20 h-20 flex items-center justify-center text-gray-500">
+                    <i class="fas fa-store text-2xl"></i>
+                </div>
+            {% endif %}
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold text-gray-800">{{ business.name }}</h1>
+                <p class="text-gray-600 mt-2">
+                    <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>
+                    {{ business.address }}
+                </p>
+                {% if has_location %}
+                    <p class="text-green-600 text-sm mt-2">
+                        <i class="fas fa-check-circle"></i> Location available on map
+                    </p>
+                {% else %}
+                    <p class="text-yellow-600 text-sm mt-2">
+                        <i class="fas fa-exclamation-triangle"></i> Exact coordinates not set. Showing approximate area.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-blue-600 text-white px-6 py-4">
+            <h2 class="text-xl font-semibold">
+                <i class="fas fa-map-marked-alt mr-2"></i>
+                Business Location
+            </h2>
+        </div>
+        
+        <!-- Map will be rendered here -->
+        <div id="map" class="w-full h-[500px]"></div>
+        
+        <!-- Map controls -->
+        <div class="p-6 bg-gray-50">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-coordinates text-blue-600 mr-2"></i>
+                        Coordinates
+                    </h3>
+                    <p class="text-gray-600 text-sm">
+                        Latitude: <span class="font-mono">{{ latitude }}</span><br>
+                        Longitude: <span class="font-mono">{{ longitude }}</span>
+                    </p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        Map Controls
+                    </h3>
+                    <p class="text-gray-600 text-sm">
+                        Use mouse wheel or +/- buttons to zoom<br>
+                        Click and drag to pan
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action buttons -->
+            <div class="mt-4 flex gap-3">
+                <a href="https://www.google.com/maps?q={{ latitude }},{{ longitude }}" 
+                   target="_blank"
+                   class="btn-primary inline-flex items-center gap-2">
+                    <i class="fas fa-directions"></i>
+                    <span>Get Directions (Google Maps)</span>
+                </a>
+                <a href="{% url 'marketplace:business_detail' business.id %}" 
+                   class="inline-flex items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Details</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+        crossorigin=""></script>
+
+<script>
+    // Initialize the map
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create map centered on business location
+        var map = L.map('map').setView([{{ latitude }}, {{ longitude }}], 15);
+        
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+        }).addTo(map);
+        
+        // Add marker for business location
+        var marker = L.marker([{{ latitude }}, {{ longitude }}]).addTo(map);
+        
+        // Add popup to marker
+        marker.bindPopup(`
+            <div class="text-center">
+                <h3 class="font-bold text-lg">{{ business.name }}</h3>
+                <p class="text-gray-600">{{ business.address }}</p>
+            </div>
+        `).openPopup();
+        
+        // Add click event to show coordinates
+        map.on('click', function(e) {
+            alert("Coordinates: " + e.latlng.lat.toFixed(6) + ", " + e.latlng.lng.toFixed(6));
+        });
+    });
+</script>
+
+<style>
+    /* Ensure map container has proper height */
+    #map {
+        z-index: 1;
+    }
+</style>
+{% endblock %}
