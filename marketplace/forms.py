@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Business, UserProfile, Product, Service, ProductRequest, ServiceRequest
+from .models import Business, UserProfile, Product, Service, ProductRequest, ServiceRequest, AdminBankingDetails
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -92,4 +92,40 @@ class ServiceRequestForm(forms.ModelForm):
         fields = ['title', 'description', 'category', 'budget', 'contact_info']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
+class BusinessLocationUpdateForm(forms.ModelForm):
+    latitude = forms.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    longitude = forms.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        required=False,
+        widget=forms.HiddenInput()
+    )
+
+    class Meta:
+        model = Business
+        fields = ['address', 'latitude', 'longitude']
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class AdminBankingDetailsForm(forms.ModelForm):
+    class Meta:
+        model = AdminBankingDetails
+        fields = ['account_holder_name', 'bank_name', 'account_number', 'branch_code', 'account_type', 'reference']
+        widgets = {
+            'account_holder_name': forms.TextInput(attrs={'class': 'form-input'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-input'}),
+            'account_number': forms.TextInput(attrs={'class': 'form-input'}),
+            'branch_code': forms.TextInput(attrs={'class': 'form-input'}),
+            'account_type': forms.Select(attrs={'class': 'form-input'}),
+            'reference': forms.TextInput(attrs={'class': 'form-input'}),
         }

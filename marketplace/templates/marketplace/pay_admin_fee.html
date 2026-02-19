@@ -1,0 +1,90 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Pay Admin Fee - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Pay Admin Fee</h1>
+
+    {% if business %}
+        <div class="bg-white p-6 rounded-lg shadow mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Business Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">Business Name</p>
+                    <p class="font-medium">{{ business.name }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Business Owner</p>
+                    <p class="font-medium">{{ business.owner.username }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Email</p>
+                    <p class="font-medium">{{ business.email }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Phone</p>
+                    <p class="font-medium">{{ business.phone_number }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Payment Summary</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-gray-600">Total Revenue</p>
+                    <p class="text-xl font-semibold">R{{ total_revenue|floatformat:2 }}</p>
+                </div>
+                <div class="flex justify-between items-center">
+                    <p class="text-gray-600">Admin Fee Rate</p>
+                    <p class="text-xl font-semibold">5%</p>
+                </div>
+                <div class="border-t pt-4 flex justify-between items-center">
+                    <p class="text-lg font-semibold text-gray-800">Amount Due</p>
+                    <p class="text-3xl font-bold text-red-600">R{{ admin_payment|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold mb-4">Select Payment Method</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="{% url 'marketplace:admin_fee_credit_card' %}" class="border-2 border-gray-200 p-6 rounded-lg hover:border-blue-500 hover:shadow-md transition">
+                    <div class="flex items-center">
+                        <svg class="w-10 h-10 text-blue-600 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        <div>
+                            <h3 class="font-semibold text-lg">Credit/Debit Card</h3>
+                            <p class="text-gray-600 text-sm">Pay with Visa, Mastercard, or other cards</p>
+                        </div>
+                    </div>
+                </a>
+                <a href="{% url 'marketplace:admin_fee_bank_transfer' %}" class="border-2 border-gray-200 p-6 rounded-lg hover:border-blue-500 hover:shadow-md transition">
+                    <div class="flex items-center">
+                        <svg class="w-10 h-10 text-green-600 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                        </svg>
+                        <div>
+                            <h3 class="font-semibold text-lg">Bank Transfer</h3>
+                            <p class="text-gray-600 text-sm">Direct bank transfer payment</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white p-6 rounded-lg shadow text-center">
+            <p class="text-gray-600 text-lg mb-4">No business found.</p>
+            <p class="text-gray-500 mb-6">You need to register a business before you can pay admin fees.</p>
+            <a href="{% url 'marketplace:business_register' %}" class="btn-primary px-6 py-2 inline-block">Register Business</a>
+        </div>
+    {% endif %}
+
+    <div class="mt-8">
+        <a href="{% url 'marketplace:business_dashboard' %}" class="text-blue-600 hover:underline">← Back to Business Dashboard</a>
+    </div>
+</div>
+{% endblock %}

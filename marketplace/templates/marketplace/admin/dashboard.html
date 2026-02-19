@@ -17,10 +17,7 @@
             <h3 class="text-lg font-semibold text-green-800">Clients</h3>
             <p class="text-3xl font-bold text-green-600">{{ total_clients }}</p>
         </a>
-        <a href="{% url 'marketplace:admin_manage_users' %}?user_type=business_owner" class="bg-yellow-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
-            <h3 class="text-lg font-semibold text-yellow-800">Business Owners</h3>
-            <p class="text-3xl font-bold text-yellow-600">{{ total_business_owners }}</p>
-        </a>
+        
         <a href="{% url 'marketplace:admin_approve_business' %}" class="bg-purple-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
             <h3 class="text-lg font-semibold text-purple-800">Pending Approvals</h3>
             <p class="text-3xl font-bold text-purple-600">{{ pending_businesses }}</p>
@@ -28,10 +25,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <a href="{% url 'marketplace:admin_manage_businesses' %}?status=approved" class="bg-red-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
-            <h3 class="text-lg font-semibold text-red-800">Approved Businesses</h3>
-            <p class="text-3xl font-bold text-red-600">{{ approved_businesses }}</p>
-        </a>
+        
         <a href="{% url 'marketplace:admin_manage_products' %}" class="bg-indigo-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
             <h3 class="text-lg font-semibold text-indigo-800">Products</h3>
             <p class="text-3xl font-bold text-indigo-600">{{ total_products }}</p>
@@ -47,36 +41,19 @@
     </div>
 
     <!-- Business Revenue Card -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <a href="{% url 'marketplace:admin_business_revenue' %}" class="bg-amber-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
-            <h3 class="text-lg font-semibold text-amber-800">Business Revenue</h3>
-            <p class="text-3xl font-bold text-amber-600">5%</p>
-        </a>
-    </div>
+    
 
     <!-- Shopping Trips & Requests Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <a href="{% url 'marketplace:admin_manage_shopping_trips' %}" class="bg-orange-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
-            <h3 class="text-lg font-semibold text-orange-800">Total Shopping Trips</h3>
-            <p class="text-3xl font-bold text-orange-600">{{ total_shopping_trips }}</p>
-        </a>
-        <a href="{% url 'marketplace:admin_manage_shopping_trips' %}?status=available" class="bg-orange-200 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
-            <h3 class="text-lg font-semibold text-orange-900">Active Trips</h3>
-            <p class="text-3xl font-bold text-orange-700">{{ active_shopping_trips }}</p>
-        </a>
-        <a href="{% url 'marketplace:admin_manage_shopping_requests' %}" class="bg-cyan-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
-            <h3 class="text-lg font-semibold text-cyan-800">Total Requests</h3>
-            <p class="text-3xl font-bold text-cyan-600">{{ total_shopping_requests }}</p>
-        </a>
-        <a href="{% url 'marketplace:admin_manage_shopping_requests' %}?status=pending" class="bg-cyan-200 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
-            <h3 class="text-lg font-semibold text-cyan-900">Pending Requests</h3>
-            <p class="text-3xl font-bold text-cyan-700">{{ pending_shopping_requests }}</p>
-        </a>
-    </div>
+    
 
     <!-- Admin Payment Section -->
     <div class="mb-8">
-        <h2 class="text-2xl font-semibold mb-4">Platform Revenue</h2>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-semibold">Platform Revenue</h2>
+            <a href="{% url 'marketplace:update_admin_banking_details' %}" class="btn-primary px-4 py-2 text-sm">
+                Update Banking Details
+            </a>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Revenue</h3>
@@ -89,6 +66,42 @@
                 <p class="text-sm text-gray-600 mt-2">5% platform fee from total revenue</p>
             </div>
         </div>
+
+        <!-- Banking Details Display -->
+        {% if banking_details %}
+        <div class="mt-6 bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Banking Details on File</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">Account Holder</p>
+                    <p class="font-medium">{{ banking_details.account_holder_name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Bank Name</p>
+                    <p class="font-medium">{{ banking_details.bank_name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Account Number</p>
+                    <p class="font-medium">****{{ banking_details.account_number|slice:"-4:" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Branch Code</p>
+                    <p class="font-medium">{{ banking_details.branch_code }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Account Type</p>
+                    <p class="font-medium">{{ banking_details.account_type|title }}</p>
+                </div>
+                {% if banking_details.reference %}
+                <div>
+                    <p class="text-sm text-gray-600">Reference</p>
+                    <p class="font-medium">{{ banking_details.reference }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <p class="text-xs text-gray-500 mt-4">Last updated: {{ banking_details.updated_at|date:"M d, Y H:i" }}</p>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Quick Actions -->
@@ -100,7 +113,7 @@
                 <p class="text-gray-600">View and manage all users in the system</p>
             </a>
             <a href="{% url 'marketplace:admin_manage_businesses' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Businesses</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Business Management</h3>
                 <p class="text-gray-600">View and manage all businesses</p>
             </a>
             <a href="{% url 'marketplace:admin_approve_business' %}" class="bg-white p-6 rounded-lg shadow border border-gray-200 hover:shadow-md transition">

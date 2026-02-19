@@ -1,0 +1,84 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Bank Transfer - Admin Fee{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Bank Transfer Payment</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Payment Details</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Business</p>
+                    <p class="font-medium">{{ business.name|default:"N/A" }}</p>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Total Revenue</p>
+                    <p class="font-medium">R{{ total_revenue|floatformat:2 }}</p>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Admin Fee (5%)</p>
+                    <p class="font-medium">R{{ admin_payment|floatformat:2 }}</p>
+                </div>
+                <div class="border-t pt-3 flex justify-between items-center">
+                    <p class="text-lg font-semibold">Amount to Pay</p>
+                    <p class="text-2xl font-bold text-red-600">R{{ admin_payment|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Bank Details</h2>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <p class="text-gray-600 text-sm">Bank Name</p>
+                    <p class="font-medium text-lg">Madidi Market Bank</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Account Name</p>
+                    <p class="font-medium">Madidi Market Platform</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Account Number</p>
+                    <p class="font-medium">123456789</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Branch Code</p>
+                    <p class="font-medium">001234</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Reference</p>
+                    <p class="font-medium">{{ business.name|default:"Business" }}-AdminFee</p>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Transfer Reference</label>
+                        <input type="text" name="transfer_reference" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Your reference number">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Upload Proof of Payment</label>
+                        <input type="file" name="proof_of_payment" accept="image/*,.pdf"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <button type="submit" class="w-full btn-primary py-3 mt-4">
+                        Confirm Bank Transfer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-8">
+        <a href="{% url 'marketplace:pay_admin_fee' %}" class="text-blue-600 hover:underline">← Back to Payment Options</a>
+    </div>
+</div>
+{% endblock %}

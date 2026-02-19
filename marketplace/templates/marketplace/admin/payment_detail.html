@@ -1,0 +1,147 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Payment Detail - Admin - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="mb-6">
+        <a href="{% url 'marketplace:admin_manage_payments' %}" class="text-blue-600 hover:underline">← Back to Payments</a>
+    </div>
+
+    <h1 class="text-3xl font-bold mb-8">Payment Detail</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Payment Information -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold mb-4">Payment Information</h2>
+            <div class="space-y-4">
+                <div>
+                    <p class="text-gray-600 text-sm">Payment ID</p>
+                    <p class="font-medium">#{{ payment.id }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Status</p>
+                    <p>
+                        {% if payment.is_paid %}
+                            <span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">Paid</span>
+                        {% else %}
+                            <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">Pending</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Payment Period</p>
+                    <p class="font-medium">{{ payment.period_start|date:"M d, Y" }} - {{ payment.period_end|date:"M d, Y" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Payment Method</p>
+                    <p class="font-medium">{{ payment.payment_method|title|default:"Not specified" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm">Created At</p>
+                    <p class="font-medium">{{ payment.created_at|date:"M d, Y H:i" }}</p>
+                </div>
+                {% if payment.paid_date %}
+                <div>
+                    <p class="text-gray-600 text-sm">Paid At</p>
+                    <p class="font-medium">{{ payment.paid_date|date:"M d, Y H:i" }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Financial Details -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold mb-4">Financial Details</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Total Revenue</p>
+                    <p class="font-medium text-lg">R{{ payment.total_revenue|floatformat:2 }}</p>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Admin Fee Rate</p>
+                    <p class="font-medium text-lg">5%</p>
+                </div>
+                <div class="border-t pt-4 flex justify-between items-center">
+                    <p class="text-gray-800 font-semibold">Admin Fee Amount</p>
+                    <p class="text-2xl font-bold text-red-600">R{{ payment.admin_fee_amount|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Business Information -->
+    <div class="bg-white p-6 rounded-lg shadow mt-8">
+        <h2 class="text-2xl font-semibold mb-4">Business Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-gray-600 text-sm">Business Name</p>
+                <p class="font-medium">{{ payment.business.name }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm">Business Owner</p>
+                <p class="font-medium">{{ payment.business.owner.username }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm">Email</p>
+                <p class="font-medium">{{ payment.business.email }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm">Phone</p>
+                <p class="font-medium">{{ payment.business.phone_number }}</p>
+            </div>
+            <div class="md:col-span-2">
+                <p class="text-gray-600 text-sm">Address</p>
+                <p class="font-medium">{{ payment.business.address }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Proof of Payment -->
+    <div class="bg-white p-6 rounded-lg shadow mt-8">
+        <h2 class="text-2xl font-semibold mb-4">Proof of Payment</h2>
+        {% if payment.proof_of_payment %}
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-file-pdf text-red-600 text-3xl"></i>
+                    <div>
+                        <p class="font-medium">{{ payment.proof_of_payment.name }}</p>
+                        <p class="text-sm text-gray-500">Uploaded: {{ payment.updated_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <a href="{% url 'marketplace:download_proof_of_payment' payment.id %}" class="btn-primary px-4 py-2">
+                        <i class="fas fa-download mr-2"></i> Download
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-gray-600">No proof of payment has been uploaded yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="bg-white p-6 rounded-lg shadow mt-8">
+        <h2 class="text-2xl font-semibold mb-4">Admin Actions</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex space-x-4">
+                {% if not payment.is_paid %}
+                    <button type="submit" name="action" value="mark_paid" 
+                            class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-check-circle mr-2"></i> Mark as Paid
+                    </button>
+                {% endif %}
+                {% if payment.proof_of_payment %}
+                    <button type="submit" name="action" value="remove_proof" 
+                            class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition"
+                            onclick="return confirm('Are you sure you want to remove the proof of payment?')">
+                        <i class="fas fa-trash mr-2"></i> Remove Proof
+                    </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

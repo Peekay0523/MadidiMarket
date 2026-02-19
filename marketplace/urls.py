@@ -55,6 +55,7 @@ urlpatterns = [
     path('business/services/', views.business_services, name='business_services'),
     path('business/my-business/', views.my_business, name='my_business'),
     path('business/my-business/delete/', views.delete_my_business, name='delete_my_business'),
+    path('business/my-business/update-location/', views.update_business_location, name='update_business_location'),
     path('business/add-product/', views.add_product, name='add_product'),
     path('business/add-service/', views.add_service, name='add_service'),
     path('business/view-reviews/', views.view_reviews, name='view_reviews'),
@@ -62,6 +63,9 @@ urlpatterns = [
     path('business/delete-product/<int:pk>/', views.delete_product, name='delete_product'),
     path('business/edit-service/<int:pk>/', views.edit_service, name='edit_service'),
     path('business/delete-service/<int:pk>/', views.delete_service, name='delete_service'),
+    path('business/pay-admin-fee/', views.pay_admin_fee, name='pay_admin_fee'),
+    path('business/pay-admin-fee/credit-card/', views.admin_fee_credit_card, name='admin_fee_credit_card'),
+    path('business/pay-admin-fee/bank-transfer/', views.admin_fee_bank_transfer, name='admin_fee_bank_transfer'),
     path('client/dashboard/', views.client_dashboard, name='client_dashboard'),
 
     # Dashboard toggle
@@ -70,6 +74,7 @@ urlpatterns = [
     # Custom admin pages (changed from 'admin/' to 'admin-panel/' to avoid conflicts)
     path('admin-panel/approve-business/', views.admin_approve_business, name='admin_approve_business'),
     path('admin-panel/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-panel/update-banking-details/', views.update_admin_banking_details, name='update_admin_banking_details'),
     path('admin-panel/users/', views.admin_manage_users, name='admin_manage_users'),
     path('admin-panel/businesses/', views.admin_manage_businesses, name='admin_manage_businesses'),
     path('admin-panel/business-revenue/', views.admin_business_revenue, name='admin_business_revenue'),
@@ -87,6 +92,9 @@ urlpatterns = [
     path('admin-panel/reviews/', views.admin_manage_reviews, name='admin_manage_reviews'),
     path('admin-panel/shopping-trips/', views.admin_manage_shopping_trips, name='admin_manage_shopping_trips'),
     path('admin-panel/shopping-requests/', views.admin_manage_shopping_requests, name='admin_manage_shopping_requests'),
+    path('admin-panel/payments/', views.admin_manage_payments, name='admin_manage_payments'),
+    path('admin-panel/payments/<int:payment_id>/', views.admin_payment_detail, name='admin_payment_detail'),
+    path('admin-panel/payments/<int:payment_id>/download-proof/', views.download_proof_of_payment, name='download_proof_of_payment'),
 
     # Review functionality
     path('business/<int:business_id>/rate/', views.rate_business, name='rate_business'),

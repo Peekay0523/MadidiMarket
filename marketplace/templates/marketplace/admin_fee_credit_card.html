@@ -1,0 +1,76 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Credit Card Payment - Admin Fee{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Credit Card Payment</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Payment Details</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Business</p>
+                    <p class="font-medium">{{ business.name|default:"N/A" }}</p>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Total Revenue</p>
+                    <p class="font-medium">R{{ total_revenue|floatformat:2 }}</p>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Admin Fee (5%)</p>
+                    <p class="font-medium">R{{ admin_payment|floatformat:2 }}</p>
+                </div>
+                <div class="border-t pt-3 flex justify-between items-center">
+                    <p class="text-lg font-semibold">Amount to Pay</p>
+                    <p class="text-2xl font-bold text-red-600">R{{ admin_payment|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Card Information</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Cardholder Name</label>
+                        <input type="text" name="cardholder_name" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="John Doe">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Card Number</label>
+                        <input type="text" name="card_number" required maxlength="16"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="1234 5678 9012 3456">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Expiry Date</label>
+                            <input type="text" name="expiry_date" required maxlength="5"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="MM/YY">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">CVV</label>
+                            <input type="text" name="cvv" required maxlength="3"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="123">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full btn-primary py-3 mt-4">
+                        Pay R{{ admin_payment|floatformat:2 }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-8">
+        <a href="{% url 'marketplace:pay_admin_fee' %}" class="text-blue-600 hover:underline">← Back to Payment Options</a>
+    </div>
+</div>
+{% endblock %}

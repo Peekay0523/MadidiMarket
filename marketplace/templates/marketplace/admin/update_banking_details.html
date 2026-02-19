@@ -1,0 +1,129 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+
+{% block title %}Update Banking Details - Admin - Madidi Market{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Update Banking Details</h1>
+
+        <div class="bg-white p-8 rounded-lg shadow">
+            <p class="text-gray-600 mb-6">
+                These banking details will be used to receive admin fee payments from the platform.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Account Holder Name *
+                        </label>
+                        <input type="text" name="account_holder_name" 
+                               value="{{ form.account_holder_name.value|default:'' }}"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               required>
+                        {% if form.account_holder_name.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.account_holder_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Bank Name *
+                        </label>
+                        <input type="text" name="bank_name" 
+                               value="{{ form.bank_name.value|default:'' }}"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               required>
+                        {% if form.bank_name.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.bank_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Account Number *
+                        </label>
+                        <input type="text" name="account_number" 
+                               value="{{ form.account_number.value|default:'' }}"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               required>
+                        {% if form.account_number.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.account_number.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Branch Code *
+                        </label>
+                        <input type="text" name="branch_code" 
+                               value="{{ form.branch_code.value|default:'' }}"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               required>
+                        {% if form.branch_code.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.branch_code.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Account Type *
+                        </label>
+                        <select name="account_type" 
+                                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="current" {% if form.account_type.value == 'current' %}selected{% endif %}>Current</option>
+                            <option value="savings" {% if form.account_type.value == 'savings' %}selected{% endif %}>Savings</option>
+                            <option value="checking" {% if form.account_type.value == 'checking' %}selected{% endif %}>Checking</option>
+                        </select>
+                        {% if form.account_type.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.account_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Reference (Optional)
+                        </label>
+                        <input type="text" name="reference" 
+                               value="{{ form.reference.value|default:'' }}"
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Payment reference">
+                        {% if form.reference.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.reference.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-8 flex space-x-4">
+                    <button type="submit" class="btn-primary px-6 py-2">
+                        Save Banking Details
+                    </button>
+                    <a href="{% url 'marketplace:admin_dashboard' %}" class="btn-secondary px-6 py-2">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Security Notice:</strong> Your banking information is stored securely. Only admins with dashboard access can view and update these details.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

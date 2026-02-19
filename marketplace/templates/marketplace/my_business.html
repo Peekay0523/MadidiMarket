@@ -38,6 +38,38 @@
                     <p>{{ business.address|default:"Not provided" }}</p>
                 </div>
             </div>
+
+            <!-- Update Location Button -->
+            <div class="mt-6">
+                <button type="button" onclick="toggleLocationForm()" class="btn-primary px-4 py-2">
+                    Update Location
+                </button>
+            </div>
+
+            <!-- Update Location Form -->
+            <div id="locationFormContainer" class="mt-6 hidden">
+                <div class="bg-gray-50 p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">Update Business Location</h3>
+                    <form method="post" action="{% url 'marketplace:update_business_location' %}{% if request.GET.business_id %}?business_id={{ request.GET.business_id }}{% endif %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            <textarea name="address" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ business.address }}</textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Location on Map</label>
+                            <div id="map" class="w-full h-64 border rounded-md"></div>
+                            <p class="text-sm text-gray-600 mt-2">Click on the map to set the location coordinates</p>
+                        </div>
+                        <input type="hidden" name="latitude" id="id_latitude" value="{{ business.latitude|default:'' }}">
+                        <input type="hidden" name="longitude" id="id_longitude" value="{{ business.longitude|default:'' }}">
+                        <div class="flex space-x-2">
+                            <button type="submit" class="btn-primary px-4 py-2">Save Location</button>
+                            <button type="button" onclick="toggleLocationForm()" class="btn-secondary px-4 py-2">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Business Stats -->
@@ -102,4 +134,58 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+    let map;
+    let marker;
+    
+    function toggleLocationForm() {
+        const container = document.getElementById('locationFormContainer');
+        container.classList.toggle('hidden');
+        if (!container.classList.contains('hidden')) {
+            initMap();
+        }
+    }
+
+    function initMap() {
+        // Default to South Africa if no location is set
+        const defaultLat = {{ business.latitude|default:"-25.747871" }};
+        const defaultLng = {{ business.longitude|default:"28.229289" }};
+        
+        const location = {
+            lat: defaultLat || -25.747871,
+            lng: defaultLng || 28.229289
+        };
+
+        map = L.map('map').setView([location.lat, location.lng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add marker if location exists
+        if (defaultLat && defaultLng) {
+            marker = L.marker([defaultLat, defaultLng]).addTo(map);
+        }
+
+        // Add click event to update location
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+
+            document.getElementById('id_latitude').value = lat.toFixed(6);
+            document.getElementById('id_longitude').value = lng.toFixed(6);
+
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng]).addTo(map);
+            }
+        });
+    }
+</script>
+
+<!-- Load Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endblock %}

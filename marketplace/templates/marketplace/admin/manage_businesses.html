@@ -7,6 +7,22 @@
 <div class="container mx-auto px-4">
     <h1 class="text-3xl font-bold mb-8">Manage Businesses</h1>
 
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <a href="{% url 'marketplace:admin_manage_users' %}?user_type=business_owner" class="bg-yellow-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-yellow-800">Business Owners</h3>
+            <p class="text-3xl font-bold text-yellow-600">{{ total_business_owners }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_manage_businesses' %}?status=approved" class="bg-red-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-red-800">Approved Businesses</h3>
+            <p class="text-3xl font-bold text-red-600">{{ approved_businesses }}</p>
+        </a>
+        <a href="{% url 'marketplace:admin_business_revenue' %}" class="bg-amber-100 p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+            <h3 class="text-lg font-semibold text-amber-800">Business Revenue</h3>
+            <p class="text-3xl font-bold text-amber-600">5%</p>
+        </a>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for business in businesses %}
         <div class="bg-white rounded-lg shadow p-6 border border-gray-200">

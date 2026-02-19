@@ -410,7 +410,7 @@
                 {% elif user.is_authenticated and user.userprofile.user_type == 'business_owner' and user.userprofile.is_approved %}
                     {% if request.resolver_match.url_name != 'business_dashboard' and request.resolver_match.url_name != 'add_product' and request.resolver_match.url_name != 'add_service' and request.resolver_match.url_name != 'edit_product' and request.resolver_match.url_name != 'edit_service' and request.resolver_match.url_name != 'delete_product' and request.resolver_match.url_name != 'delete_service' and request.resolver_match.url_name != 'business_products' and request.resolver_match.url_name != 'business_services' and request.resolver_match.url_name != 'business_orders' and request.resolver_match.url_name != 'business_order_detail' and request.resolver_match.url_name != 'my_business' %}
                         <a href="{% url 'marketplace:go_shopping' %}" class="nav-link flex items-center px-4 py-2 rounded-lg transition {% if request.resolver_match.url_name == 'go_shopping' %}bg-blue-100 text-blue-700 font-medium{% else %}hover:bg-gray-100{% endif %}">
-                            <i class="fas fa-shopping-bag mr-3 {% if request.resolver_match.url_name == 'go_shopping' %}text-blue-600{% else %}text-gray-600{% endif %}"></i> Go Shopping
+                            <i class="fas fa-shopping-bag mr-3 {% if request.resolver_match.url_name == 'go_shopping' %}text-blue-600{% else %}text-gray-600{% endif %}"></i> Shopping Trips
                         </a>
                     {% endif %}
                 {% else %}
@@ -451,6 +451,15 @@
                                     {{ pending_approvals_count }}
                                 </span>
                             {% endif %}
+                        </a>
+                        <a href="{% url 'marketplace:admin_manage_businesses' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                            <i class="fas fa-briefcase mr-3 text-gray-600"></i> Business Management
+                        </a>
+                        <a href="{% url 'marketplace:admin_manage_shopping_trips' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                            <i class="fas fa-route mr-3 text-gray-600"></i> Trips
+                        </a>
+                        <a href="{% url 'marketplace:admin_manage_payments' %}" class="flex items-center px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                            <i class="fas fa-credit-card mr-3 text-gray-600"></i> Payments
                         </a>
                         <a href="{% url 'marketplace:logout' %}" class="flex items-center px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 transition">
                             <i class="fas fa-sign-out-alt mr-3 text-red-500"></i> Logout

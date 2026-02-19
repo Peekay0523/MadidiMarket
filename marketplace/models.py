@@ -49,11 +49,36 @@ class BusinessAdminFeePayment(models.Model):
     admin_fee_amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_paid = models.BooleanField(default=False)
     paid_date = models.DateTimeField(null=True, blank=True)
+    proof_of_payment = models.FileField(upload_to='proof_of_payments/', null=True, blank=True)
+    payment_method = models.CharField(max_length=50, blank=True)  # e.g., 'credit_card', 'bank_transfer'
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.business.name} - Admin Fee ({self.period_start.strftime('%Y-%m-%d')} to {self.period_end.strftime('%Y-%m-%d')})"
+
+
+class AdminBankingDetails(models.Model):
+    """Model to store admin banking details for receiving payments"""
+    account_holder_name = models.CharField(max_length=200)
+    bank_name = models.CharField(max_length=200)
+    account_number = models.CharField(max_length=20)
+    branch_code = models.CharField(max_length=10)
+    account_type = models.CharField(
+        max_length=20,
+        choices=[('savings', 'Savings'), ('checking', 'Checking'), ('current', 'Current')],
+        default='current'
+    )
+    reference = models.CharField(max_length=100, blank=True, help_text="Optional reference for payments")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.bank_name} - {self.account_holder_name}"
+
+    class Meta:
+        verbose_name = "Admin Banking Details"
+        verbose_name_plural = "Admin Banking Details"
 
 
 class Category(models.Model):

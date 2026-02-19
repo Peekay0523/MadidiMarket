@@ -300,6 +300,179 @@ def business_dashboard(request):
 
 @login_required
 @business_owner_required
+def pay_admin_fee(request):
+    """Page for business owners to pay admin fees"""
+    if not request.user.userprofile.is_approved:
+        messages.error(request, 'Your business account must be approved to pay admin fees.')
+        return redirect('marketplace:business_dashboard')
+
+    # Get all businesses for the user
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+    business = all_businesses.first() if all_businesses.exists() else None
+
+    if business:
+        # Calculate total revenue from completed orders for this business
+        completed_orders = Order.objects.filter(
+            business=business,
+            status__in=['completed', 'delivered']
+        )
+
+        total_revenue = 0
+        for order in completed_orders:
+            total_revenue += float(order.total_amount)
+
+        # Calculate admin's payment (5% of total revenue)
+        admin_payment = total_revenue * 0.05
+    else:
+        total_revenue = 0
+        admin_payment = 0
+
+    context = {
+        'business': business,
+        'total_revenue': total_revenue,
+        'admin_payment': admin_payment,
+    }
+    return render(request, 'marketplace/pay_admin_fee.html', context)
+
+
+@login_required
+@business_owner_required
+def admin_fee_credit_card(request):
+    """Credit card payment page for admin fees"""
+    if not request.user.userprofile.is_approved:
+        messages.error(request, 'Your business account must be approved to pay admin fees.')
+        return redirect('marketplace:business_dashboard')
+
+    # Get all businesses for the user
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+    business = all_businesses.first() if all_businesses.exists() else None
+
+    if business:
+        completed_orders = Order.objects.filter(
+            business=business,
+            status__in=['completed', 'delivered']
+        )
+
+        total_revenue = 0
+        for order in completed_orders:
+            total_revenue += float(order.total_amount)
+
+        admin_payment = total_revenue * 0.05
+    else:
+        total_revenue = 0
+        admin_payment = 0
+
+    if request.method == 'POST':
+        # Process the credit card payment
+        # In a real application, you would integrate with a payment gateway
+        # Create a payment record
+        from datetime import timedelta
+        from django.utils import timezone
+        from marketplace.models import BusinessAdminFeePayment
+        
+        # Check if there's already a pending payment for this period
+        period_end = timezone.now()
+        period_start = period_end - timedelta(days=30)  # Last 30 days
+        
+        existing_payment = BusinessAdminFeePayment.objects.filter(
+            business=business,
+            period_start__lte=period_start,
+            period_end__gte=period_end,
+            is_paid=False
+        ).first()
+        
+        if not existing_payment and admin_payment > 0:
+            BusinessAdminFeePayment.objects.create(
+                business=business,
+                period_start=period_start,
+                period_end=period_end,
+                total_revenue=total_revenue,
+                admin_fee_amount=admin_payment,
+                is_paid=True,
+                paid_date=timezone.now(),
+                payment_method='credit_card'
+            )
+        
+        messages.success(request, f'Admin fee of R{admin_payment|floatformat:2} paid successfully!')
+        return redirect('marketplace:business_dashboard')
+
+    context = {
+        'business': business,
+        'total_revenue': total_revenue,
+        'admin_payment': admin_payment,
+    }
+    return render(request, 'marketplace/admin_fee_credit_card.html', context)
+
+
+@login_required
+@business_owner_required
+def admin_fee_bank_transfer(request):
+    """Bank transfer payment page for admin fees"""
+    if not request.user.userprofile.is_approved:
+        messages.error(request, 'Your business account must be approved to pay admin fees.')
+        return redirect('marketplace:business_dashboard')
+
+    # Get all businesses for the user
+    all_businesses = Business.objects.filter(owner=request.user).order_by('-created_at')
+    business = all_businesses.first() if all_businesses.exists() else None
+
+    if business:
+        completed_orders = Order.objects.filter(
+            business=business,
+            status__in=['completed', 'delivered']
+        )
+
+        total_revenue = 0
+        for order in completed_orders:
+            total_revenue += float(order.total_amount)
+
+        admin_payment = total_revenue * 0.05
+    else:
+        total_revenue = 0
+        admin_payment = 0
+
+    if request.method == 'POST':
+        # Process the bank transfer payment confirmation
+        from datetime import timedelta
+        from django.utils import timezone
+        from marketplace.models import BusinessAdminFeePayment
+        
+        transfer_reference = request.POST.get('transfer_reference', '')
+        proof_of_payment = request.FILES.get('proof_of_payment')
+        
+        # Create a pending payment record
+        period_end = timezone.now()
+        period_start = period_end - timedelta(days=30)  # Last 30 days
+        
+        if admin_payment > 0:
+            payment = BusinessAdminFeePayment.objects.create(
+                business=business,
+                period_start=period_start,
+                period_end=period_end,
+                total_revenue=total_revenue,
+                admin_fee_amount=admin_payment,
+                is_paid=False,
+                payment_method='bank_transfer'
+            )
+            
+            # Save proof of payment if uploaded
+            if proof_of_payment:
+                payment.proof_of_payment = proof_of_payment
+                payment.save()
+        
+        messages.success(request, f'Bank transfer for admin fee of R{admin_payment|floatformat:2} initiated. Please complete the transfer.')
+        return redirect('marketplace:business_dashboard')
+
+    context = {
+        'business': business,
+        'total_revenue': total_revenue,
+        'admin_payment': admin_payment,
+    }
+    return render(request, 'marketplace/admin_fee_bank_transfer.html', context)
+
+
+@login_required
+@business_owner_required
 def business_products(request):
     """Display products for the selected business of the logged-in business owner"""
     # Get the business ID from the request, or use the first one if not specified
@@ -1340,6 +1513,9 @@ def admin_dashboard(request):
     recent_shopping_trips = ShoppingTrip.objects.select_related('user').order_by('-created_at')[:10]
     recent_shopping_requests = ShoppingRequest.objects.select_related('requester', 'shopper', 'shopping_trip__user').order_by('-created_at')[:10]
 
+    # Get admin banking details
+    banking_details = AdminBankingDetails.objects.first()
+
     context = {
         'total_users': total_users,
         'total_clients': total_clients,
@@ -1357,8 +1533,39 @@ def admin_dashboard(request):
         'pending_shopping_requests': pending_shopping_requests,
         'recent_shopping_trips': recent_shopping_trips,
         'recent_shopping_requests': recent_shopping_requests,
+        'banking_details': banking_details,
     }
     return render(request, 'marketplace/admin/dashboard.html', context)
+
+
+@login_required
+def update_admin_banking_details(request):
+    """Allow admin to update banking details for receiving payments"""
+    if not request.user.is_staff and request.user.userprofile.user_type != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('marketplace:home')
+
+    # Get existing banking details or create new instance
+    banking_details = AdminBankingDetails.objects.first()
+
+    if request.method == 'POST':
+        form = AdminBankingDetailsForm(request.POST, instance=banking_details)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Banking details updated successfully!')
+            return redirect('marketplace:admin_dashboard')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = AdminBankingDetailsForm(instance=banking_details)
+
+    context = {
+        'form': form,
+        'banking_details': banking_details,
+    }
+    return render(request, 'marketplace/admin/update_banking_details.html', context)
 
 
 @login_required
@@ -1787,9 +1994,19 @@ def go_shopping(request):
     # Get current user's shopping trips
     user_trips = ShoppingTrip.objects.filter(user=request.user).order_by('-created_at')
 
+    # Calculate stats
+    total_shopping_trips = ShoppingTrip.objects.count()
+    active_shopping_trips = ShoppingTrip.objects.filter(status='available').count()
+    total_shopping_requests = ShoppingRequest.objects.count()
+    pending_shopping_requests = ShoppingRequest.objects.filter(status='pending').count()
+
     context = {
         'upcoming_trips': upcoming_trips,
         'user_trips': user_trips,
+        'total_shopping_trips': total_shopping_trips,
+        'active_shopping_trips': active_shopping_trips,
+        'total_shopping_requests': total_shopping_requests,
+        'pending_shopping_requests': pending_shopping_requests,
     }
     return render(request, 'marketplace/go_shopping.html', context)
 
@@ -2387,9 +2604,15 @@ def admin_manage_businesses(request):
     elif status == 'pending':
         businesses = businesses.filter(owner__userprofile__is_approved=False)
 
+    # Get statistics for the page
+    total_business_owners = UserProfile.objects.filter(user_type='business_owner').count()
+    approved_businesses_count = UserProfile.objects.filter(user_type='business_owner', is_approved=True).count()
+
     context = {
         'businesses': businesses,
         'current_status': status,
+        'total_business_owners': total_business_owners,
+        'approved_businesses': approved_businesses_count,
     }
     return render(request, 'marketplace/admin/manage_businesses.html', context)
 
@@ -2472,6 +2695,104 @@ def admin_manage_shopping_requests(request):
         'current_status': status,
     }
     return render(request, 'marketplace/admin/manage_shopping_requests.html', context)
+
+
+@login_required
+def admin_manage_payments(request):
+    """Manage all admin fee payments in the system"""
+    if not request.user.is_staff and request.user.userprofile.user_type != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('marketplace:home')
+
+    # Get query parameter for filtering
+    status = request.GET.get('status', 'all')
+
+    payments = BusinessAdminFeePayment.objects.select_related('business__owner').all()
+
+    # Apply filter based on status
+    if status == 'paid':
+        payments = payments.filter(is_paid=True)
+    elif status == 'pending':
+        payments = payments.filter(is_paid=False)
+
+    # Calculate stats
+    total_payments = BusinessAdminFeePayment.objects.count()
+    paid_payments = BusinessAdminFeePayment.objects.filter(is_paid=True).count()
+    pending_payments = BusinessAdminFeePayment.objects.filter(is_paid=False).count()
+    total_revenue = sum(p.admin_fee_amount for p in BusinessAdminFeePayment.objects.filter(is_paid=True))
+    pending_revenue = sum(p.admin_fee_amount for p in BusinessAdminFeePayment.objects.filter(is_paid=False))
+
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(payments, 10)  # Show 10 payments per page
+    page_number = request.GET.get('page')
+    payments = paginator.get_page(page_number)
+
+    context = {
+        'payments': payments,
+        'total_payments': total_payments,
+        'paid_payments': paid_payments,
+        'pending_payments': pending_payments,
+        'total_revenue': total_revenue,
+        'pending_revenue': pending_revenue,
+        'current_status': status,
+    }
+    return render(request, 'marketplace/admin/manage_payments.html', context)
+
+
+@login_required
+def admin_payment_detail(request, payment_id):
+    """Detail view for a specific admin fee payment"""
+    if not request.user.is_staff and request.user.userprofile.user_type != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('marketplace:home')
+
+    payment = get_object_or_404(BusinessAdminFeePayment.objects.select_related('business__owner'), id=payment_id)
+
+    if request.method == 'POST':
+        # Admin can mark payment as paid
+        action = request.POST.get('action')
+        if action == 'mark_paid':
+            payment.is_paid = True
+            payment.paid_date = timezone.now()
+            payment.save()
+            messages.success(request, 'Payment marked as paid.')
+        elif action == 'remove_proof':
+            if payment.proof_of_payment:
+                payment.proof_of_payment.delete()
+                payment.proof_of_payment = None
+                payment.save()
+            messages.success(request, 'Proof of payment removed.')
+        return redirect('marketplace:admin_payment_detail', payment_id=payment.id)
+
+    context = {
+        'payment': payment,
+    }
+    return render(request, 'marketplace/admin/payment_detail.html', context)
+
+
+@login_required
+def download_proof_of_payment(request, payment_id):
+    """Download proof of payment file"""
+    if not request.user.is_staff and request.user.userprofile.user_type != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('marketplace:home')
+
+    payment = get_object_or_404(BusinessAdminFeePayment, id=payment_id)
+
+    if not payment.proof_of_payment:
+        messages.error(request, 'No proof of payment uploaded for this payment.')
+        return redirect('marketplace:admin_payment_detail', payment_id=payment.id)
+
+    from django.http import FileResponse
+    import os
+
+    file_path = payment.proof_of_payment.path
+    filename = os.path.basename(file_path)
+
+    response = FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 @login_required
@@ -2564,6 +2885,40 @@ def delete_my_business(request):
 
     messages.success(request, f'Business "{business_name}" has been successfully deleted.')
     return redirect('marketplace:business_register')
+
+
+@login_required
+@business_owner_required
+def update_business_location(request):
+    """Allow business owner to update their business location"""
+    if request.method != 'POST':
+        return redirect('marketplace:my_business')
+
+    # Get the business ID from the request, or use the first one if not specified
+    selected_business_id = request.GET.get('business_id')
+    if selected_business_id:
+        try:
+            business = Business.objects.get(id=selected_business_id, owner=request.user)
+        except Business.DoesNotExist:
+            messages.error(request, 'Selected business not found.')
+            return redirect('marketplace:business_dashboard')
+    else:
+        business = Business.objects.filter(owner=request.user).first()
+
+    if not business:
+        messages.error(request, 'No business found to update.')
+        return redirect('marketplace:business_register')
+
+    form = BusinessLocationUpdateForm(request.POST, instance=business)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Business location updated successfully!')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f'{field}: {error}')
+
+    return redirect('marketplace:my_business')
 
 
 def password_reset_request(request):
