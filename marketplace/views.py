@@ -58,6 +58,11 @@ def about(request):
     return render(request, 'marketplace/about.html')
 
 
+def terms_and_conditions(request):
+    """Display terms and conditions for business owners"""
+    return render(request, 'marketplace/terms_and_conditions.html')
+
+
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -67,8 +72,9 @@ def register(request):
             user_type = form.cleaned_data.get('user_type')
             messages.success(request, f'Account created for {username}!')
 
-            # If user registered as business_owner, redirect to business registration
+            # If user registered as business_owner, log them in and redirect to business registration
             if user_type == 'business_owner':
+                login(request, user)
                 return redirect('marketplace:business_register')
             else:
                 # For clients, redirect to login
@@ -81,13 +87,7 @@ def register(request):
             return render(request, 'marketplace/register.html', {'form': form})
     else:
         form = UserRegistrationForm()
-
-        # Pass the next parameter to the template context if it exists
-        next_url = request.GET.get('next')
-        context = {'form': form}
-        if next_url:
-            context['next'] = next_url
-        return render(request, 'marketplace/register.html', context)
+        return render(request, 'marketplace/register.html', {'form': form})
 
 
 def login_view(request):
@@ -194,31 +194,78 @@ def admin_approve_business(request):
 
 
 def business_register(request):
-    # Check if user is authenticated
-    if not request.user.is_authenticated:
-        messages.info(request, 'You need to register or log in first before registering a business.')
-        # Redirect to register page with a parameter to redirect to business registration after login
-        next_url = request.build_absolute_uri(request.path)
-        return redirect(f"{reverse('marketplace:register')}?next={next_url}")
+    """
+    Business registration view that works for both authenticated and non-authenticated users.
+    For non-authenticated users, it combines user registration and business registration.
+    """
+    if request.user.is_authenticated:
+        # Authenticated user - just register the business
+        if request.method == 'POST':
+            form = BusinessOwnerRegistrationForm(request.POST)
+            if form.is_valid():
+                business = form.save(commit=False)
+                business.owner = request.user
+                business.save()
 
-    if request.method == 'POST':
-        form = BusinessOwnerRegistrationForm(request.POST)
-        if form.is_valid():
-            business = form.save(commit=False)
-            business.owner = request.user
-            business.save()
+                # Update user profile to business owner
+                user_profile = UserProfile.objects.get(user=request.user)
+                user_profile.user_type = 'business_owner'
+                user_profile.is_approved = False  # Needs admin approval
+                user_profile.save()
 
-            # Update user profile to business owner
-            user_profile = UserProfile.objects.get(user=request.user)
-            user_profile.user_type = 'business_owner'
-            user_profile.is_approved = False  # Needs admin approval
-            user_profile.save()
-
-            messages.success(request, 'Business registered successfully! Awaiting admin approval.')
-            return redirect('marketplace:home')
+                messages.success(request, 'Business registered successfully! Awaiting admin approval.')
+                return redirect('marketplace:home')
+        else:
+            form = BusinessOwnerRegistrationForm()
+        return render(request, 'marketplace/business_register.html', {'form': form})
     else:
-        form = BusinessOwnerRegistrationForm()
-    return render(request, 'marketplace/business_register.html', {'form': form})
+        # Non-authenticated user - use combined form
+        if request.method == 'POST':
+            form = CombinedBusinessOwnerForm(request.POST)
+            if form.is_valid():
+                # Create user account
+                user = User.objects.create_user(
+                    username=form.cleaned_data['username'],
+                    email=form.cleaned_data['email'],
+                    password=form.cleaned_data['password1'],
+                    first_name=form.cleaned_data.get('first_name', ''),
+                    last_name=form.cleaned_data.get('last_name', '')
+                )
+
+                # Create user profile
+                UserProfile.objects.create(
+                    user=user,
+                    user_type='business_owner',
+                    is_approved=False
+                )
+
+                # Create business
+                business = Business.objects.create(
+                    owner=user,
+                    name=form.cleaned_data['business_name'],
+                    description=form.cleaned_data['business_description'],
+                    address=form.cleaned_data['business_address'],
+                    phone_number=form.cleaned_data['business_phone_number'],
+                    email=form.cleaned_data['business_email'],
+                    latitude=form.cleaned_data.get('latitude'),
+                    longitude=form.cleaned_data.get('longitude')
+                )
+
+                messages.success(request, f'Account and business "{business.name}" registered successfully! Awaiting admin approval.')
+                
+                # Log the user in
+                login(request, user)
+                
+                return redirect('marketplace:home')
+            else:
+                # Show errors
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
+        else:
+            form = CombinedBusinessOwnerForm()
+        
+        return render(request, 'marketplace/business_register.html', {'form': form, 'is_combined_form': True})
 
 
 @login_required

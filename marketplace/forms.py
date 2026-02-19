@@ -37,18 +37,22 @@ class UserRegistrationForm(UserCreationForm):
 
 class BusinessOwnerRegistrationForm(forms.ModelForm):
     latitude = forms.DecimalField(
-        max_digits=9, 
-        decimal_places=6, 
+        max_digits=9,
+        decimal_places=6,
         required=False,
         widget=forms.HiddenInput()
     )
     longitude = forms.DecimalField(
-        max_digits=9, 
-        decimal_places=6, 
+        max_digits=9,
+        decimal_places=6,
         required=False,
         widget=forms.HiddenInput()
     )
-    
+    agree_to_terms = forms.BooleanField(
+        required=True,
+        widget=forms.CheckboxInput(attrs={'class': 'mr-2'})
+    )
+
     class Meta:
         model = Business
         fields = ['name', 'description', 'address', 'phone_number', 'email', 'latitude', 'longitude']
@@ -57,6 +61,49 @@ class BusinessOwnerRegistrationForm(forms.ModelForm):
             'latitude': forms.HiddenInput(),
             'longitude': forms.HiddenInput(),
         }
+
+
+class CombinedBusinessOwnerForm(forms.Form):
+    """Combined form for non-authenticated users to register user account and business"""
+    # User fields
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-input'}))
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-input'}))
+    password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput(attrs={'class': 'form-input'}))
+    first_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    last_name = forms.CharField(max_length=150, required=False, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    
+    # Business fields
+    business_name = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    business_description = forms.CharField(widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-textarea'}))
+    business_address = forms.CharField(widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-textarea'}))
+    business_phone_number = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'class': 'form-input'}))
+    business_email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-input'}))
+    latitude = forms.DecimalField(max_digits=9, decimal_places=6, required=False, widget=forms.HiddenInput())
+    longitude = forms.DecimalField(max_digits=9, decimal_places=6, required=False, widget=forms.HiddenInput())
+    
+    # Terms acceptance
+    agree_to_terms = forms.BooleanField(required=True, widget=forms.CheckboxInput(attrs={'class': 'mr-2'}))
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+        
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords do not match")
+        
+        email = cleaned_data.get('email')
+        business_email = cleaned_data.get('business_email')
+        
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists")
+        
+        username = cleaned_data.get('username')
+        if username and User.objects.filter(username=username).exists():
+            raise forms.ValidationError("A user with this username already exists")
+        
+        return cleaned_data
 
 
 class ProductForm(forms.ModelForm):

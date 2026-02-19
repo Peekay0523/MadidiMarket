@@ -10,6 +10,7 @@ urlpatterns = [
     # Main pages
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
+    path('terms-and-conditions/', views.terms_and_conditions, name='terms_and_conditions'),
     
     # User authentication
     path('register/', views.register, name='register'),
